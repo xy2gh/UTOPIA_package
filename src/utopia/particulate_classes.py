@@ -1,3 +1,7 @@
+import math
+import numpy as np
+
+
 class Particulates:
     """Class Particulates generates particulate objects, especifically microplastic particle objects. The class defines a particle object by its composition, shape and dimensions"""
 

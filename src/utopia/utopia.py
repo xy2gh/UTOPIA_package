@@ -6,7 +6,10 @@ import os
 from datetime import datetime
 import math
 import numpy as np
-from objects_generation import generate_objects
+from objects_generation import *
+from generate_rate_constants import *
+from fill_interactions_df import *
+from solver_steady_state import *
 
 
 class utopia:
@@ -41,7 +44,7 @@ class utopia:
         # Load parameters
         self.load_parameters()
         self.particles_df = self.generate_particles_dataframe()
-        self.generate_size_dictionaries()
+        self.generate_coding_dictionaries()
 
     @staticmethod
     def load_json_file(filename):
@@ -70,6 +73,7 @@ class utopia:
             "MP_composition",
             "shape",
             "FI",
+            "MP_form",
             "t_half_deg_free",
             "heter_deg_factor",
             "biof_deg_factor",
@@ -90,6 +94,7 @@ class utopia:
             "comp_interactions_file_name",
             "boxName",
             "MPforms_list",
+            "solver",
         ]
 
         self.check_required_keys(data, required_data_keys, "data")
@@ -102,6 +107,7 @@ class utopia:
         self.MPdensity_kg_m3 = self.data["MPdensity_kg_m3"]
         self.MP_composition = self.data["MP_composition"]
         self.shape = self.data["shape"]
+        self.MP_form = self.data["MP_form"]
         self.big_bin_diameter_um = self.config["big_bin_diameter_um"]
         self.N_sizeBins = self.config["N_sizeBins"]
         self.FI = self.data["FI"]
@@ -131,6 +137,7 @@ class utopia:
         self.compartments_list = self.load_csv_column(
             f"data/{self.comp_input_file_name}", "Cname"
         )
+        self.solver = self.config["solver"]
 
         # Derived environmental parameters
         self.radius_algae_m = ((3.0 / 4.0) * (self.vol_algal_cell_m3 / math.pi)) ** (
@@ -170,7 +177,7 @@ class utopia:
         else:
             raise ValueError("Shape not supported yet")
 
-    def generate_size_dictionaries(self):
+    def generate_coding_dictionaries(self):
         """Generates size-related dictionaries as attributes."""
         if self.particles_df is None:
             raise ValueError("Particles DataFrame has not been generated.")
@@ -186,16 +193,59 @@ class utopia:
         # Dictionary mapping size codes to sizes
         self.size_dict = dict(zip(self.size_codes, self.dict_size_coding.values()))
 
+        # Dictionary mapping MP form codes to MP forms
+        self.particle_forms_coding = dict(zip(self.MPforms_list, ["A", "B", "C", "D"]))
+        self.MP_form_dict_reverse = {
+            v: k for k, v in self.particle_forms_coding.items()
+        }
+
     def run(self):
-        """Runs the UTOPIA model. This is a placeholder for model execution logic."""
+        """Runs the UTOPIA model with the configured parameters."""
+        # Generate model objects based on model configuration and input data
         print("Running UTOPIA model with configured parameters...")
+        (
+            self.system_particle_object_list,
+            self.SpeciesList,
+            self.spm,
+            self.dict_comp,
+            self.particles_properties_df,
+        ) = generate_objects(
+            boxName=self.boxName,
+            MPforms_list=self.MPforms_list,
+            comp_input_file_name=self.comp_input_file_name,
+            comp_interactFile_name=self.comp_interactions_file_name,
+            particles_df=self.particles_df,
+            spm_density_kg_m3=self.spm_density_kg_m3,
+            spm_radius_um=self.spm_radius_um,
+        )
+
+        # Estimate rate contants for all processess for each particle in the system
+        generate_rate_constants(self)
+        print("Generated model rate constants for model particles.")
+
+        # Build matrix of interactions
+        self.interactions_df = fillInteractions_fun_OOP(
+            system_particle_object_list=self.system_particle_object_list,
+            SpeciesList=self.SpeciesList,
+            dict_comp=self.dict_comp,
+        )
+        # Solve system of ODEs
+        if self.solver == "SteadyState":
+
+            (self.R, self.PartMass_t0, self.input_flows_g_s, self.input_flows_num_s) = (
+                solver_SS(self)
+            )
+            print("Solved system of ODEs for steady state.")
+        else:
+            raise ValueError("Solver not implemented yet")
 
     def summarize(self):
         """Prints a summary of the model's key parameters."""
         print(f"Model: UTOPIA")
-        print(f"Box Name: {self.boxName}")
+        # print(f"Box Name: {self.boxName}")
         print(f"Microplastic Density (kg/m3): {self.MPdensity_kg_m3}")
         print("MP shape: ", self.shape)
+        print("Emissions made to MP form: ", self.MP_form)
 
         def print_fragmentation_style(F):
             if F == 0:
@@ -214,27 +264,3 @@ class utopia:
                     print(
                         f"Emissions to {compartment} for size fraction {self.size_dict[fraction]} {chr(181)}m: {value} g/s"
                     )
-
-
-#         # Define model inputs path
-#         inputs_path = os.path.join(os.path.dirname(__file__), "data")
-
-#         # Generate model objects
-#         (
-#             system_particle_object_list,
-#             SpeciesList,
-#             spm,
-#             dict_comp,
-#             model_lists,
-#             particles_df,
-#         ) = generate_objects(
-#             inputs_path,
-#             boxName=self.boxName,
-#             MPforms_list=self.MPforms_list,
-#             comp_input_file_name=self.comp_input_file_name,
-#             comp_interactFile_name=self.comp_interactFile_name,
-#             mp_imputFile_name=self.mp_imputFile_name,
-#             spm_radius_um=self.spm_radius_um,
-#             spm_density_kg_m3=self.spm_density_kg_m3,
-#         )
-# def run(self)

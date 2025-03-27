@@ -6,91 +6,17 @@ import copy
 from globalConstants import *
 from compartment_classes import *
 from particulate_classes import *
-
-
-class Box:
-    """Class box generates one object box representing the unit world in the case of the UTOPIA parameterization that can contain 17 compartments and that can have connexions to other boxes (for example if conecting several UTOPIA boxes to give spatial resolution to a global model)"""
-
-    description = "Generic Box class"
-
-    def __init__(
-        self,
-        Bname,
-        Bdepth_m=None,
-        Blength_m=None,
-        Bwidth_m=None,
-        Bvolume_m3=None,
-        Bconexions=None,
-    ):
-        # Assign attributes to self (instance attributes). Those set up as None are optional attributes
-        self.Bname = Bname  # name of the box
-        self.Bdepth_m = Bdepth_m  # depth of the box
-        self.Blength_m = Blength_m  # length of the box
-        self.Bwidth_m = Bwidth_m  # width of the box
-        self.Bvolume_m3 = Bvolume_m3  # volume of the box
-        self.compartments = []  # list of compartments in the box
-        self.Bconexions = Bconexions  # conexions to other model boxes
-
-    def __repr__(self):
-        return (
-            "{"
-            + self.Bname
-            + ", "
-            + str(self.Bdepth_m)
-            + ", "
-            + str(self.Blength_m)
-            + ", "
-            + str(self.Bwidth_m)
-            + "}"
-        )
-
-    def add_compartment(self, comp):
-        self.compartments.append(comp)
-        comp.assign_box(self)
-
-    def calc_Bvolume_m3(self):
-        if self.Bvolume_m3 is None:
-            if any(
-                attr is None for attr in [self.Bdepth_m, self.Blength_m, self.Bwidth_m]
-            ):
-                print(
-                    "Missing parameters needded to calculate Box volume --> calculating based on compartments volume"
-                )
-                if len(self.compartments) == 0:
-                    print(
-                        "No compartments assigned to this model box --> use add_compartment(comp)"
-                    )
-                else:
-                    vol = []
-                    for c in range(len(self.compartments)):
-                        if self.compartments[c].Cvolume_m3 is None:
-                            print(
-                                "Volume of compartment "
-                                + self.compartments[c].Cname
-                                + " is missing"
-                            )
-                            continue
-                        else:
-                            vol.append(self.compartments[c].Cvolume_m3)
-                    self.Bvolume_m3 = sum(vol)
-            else:
-                self.Bvolume_m3 = self.Bdepth_m * self.Blength_m * self.Bwidth_m
-                # print("Box volume: " + str(self.Bvolume_m3)+" m3")
-        else:
-            print("Box volume already assigned: " + str(self.Bvolume_m3) + " m3")
-
+from box_class import *
 
 from readinputs_from_csv import *
-from create_inputsTable_UTOPIA import *
 
 
 def generate_objects(
-    inputs_path,
     boxName,
     MPforms_list,
     comp_input_file_name,
     comp_interactFile_name,
-    mp_imputFile_name,
+    particles_df,
     spm_density_kg_m3,
     spm_radius_um,
 ):
@@ -105,14 +31,12 @@ def generate_objects(
 
     # Compartmets
     """Call read imput file function for compartments"""
-
-    compartments = instantiate_compartments(inputs_path + comp_input_file_name)
+    inputs_path_file = f"data/{comp_input_file_name}"
+    compartments = instantiate_compartments(inputs_path_file)
 
     # Establish connexions between compartments defining their interaction mechanism: only listed those compartments wich will recieve particles from the define compartment. i.e. the ocean surface water compartment transports particles to the ocean mix layer through settling and to air through sea spray resuspension
-
-    set_interactions(
-        compartments, connexions_path_file=inputs_path + comp_interactFile_name
-    )
+    connexions_path_file = f"data/{comp_interactFile_name}"
+    set_interactions(compartments, connexions_path_file)
 
     # Assign modelling code to compartments
     for c in range(len(compartments)):
@@ -135,7 +59,7 @@ def generate_objects(
 
     # MP_freeParticles = instantiateParticles_from_csv(inputs_path + mp_imputFile_name)
 
-    MP_freeParticles = instantiateParticles_from_csv(mp_imputFile_name)
+    MP_freeParticles = generate_particles_from_df(particles_df)
 
     dict_size_coding = dict(
         zip(
@@ -219,9 +143,7 @@ def generate_objects(
         "Corey Shape Factor": ([p.CSF for p in particles]),
     }
 
-    particles_df = pd.DataFrame(data=particles_properties)
-    # print(particles_df)
-    # particles_df.to_csv("Particles_properties_output.csv", index=False)
+    particles_properties_df = pd.DataFrame(data=particles_properties)
 
     # Assign compartmets to UTOPIA
 
@@ -263,20 +185,19 @@ def generate_objects(
         system_particle_object_list, MPforms_list, compartmentNames_list, boxNames_list
     )
 
-    model_lists = dict(
-        zip(
-            ["compartmentNames_list", "boxNames_list", "dict_size_coding"],
-            [compartmentNames_list, boxNames_list, dict_size_coding],
-        )
-    )
+    # model_lists = dict(
+    #     zip(
+    #         ["compartmentNames_list", "boxNames_list", "dict_size_coding"],
+    #         [compartmentNames_list, boxNames_list, dict_size_coding],
+    #     )
+    # )
 
     return (
         system_particle_object_list,
         SpeciesList,
         spm,
         dict_comp,
-        model_lists,
-        particles_df,
+        particles_properties_df,
     )
 
 

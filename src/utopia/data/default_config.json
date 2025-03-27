@@ -6,5 +6,6 @@
     "boxName": "Utopia",
     "comp_input_file_name": "inputs_compartments.csv",
     "comp_interactions_file_name": "compartment_interactions.csv",
-    "MPforms_list":["freeMP", "heterMP", "biofMP", "heterBiofMP"]
+    "MPforms_list":["freeMP", "heterMP", "biofMP", "heterBiofMP"],
+    "solver": "SteadyState"
     }

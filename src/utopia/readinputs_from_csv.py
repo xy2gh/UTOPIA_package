@@ -93,6 +93,7 @@ def instantiate_compartments(inputs_path_file):
     Comp_objects = (
         waterComp_objects + sedimentComp_objects + soilComp_objects + airComp_objects
     )
+    return Comp_objects
 
 
 def set_interactions(compartments, connexions_path_file):
@@ -138,6 +139,27 @@ def instantiateParticles_from_csv(compFile):
                 PdimensionX_um=float(p.get("dimensionX_um")),
                 PdimensionY_um=float(p.get("dimensionY_um")),
                 PdimensionZ_um=float(p.get("dimensionZ_um")),
+            )
+        )
+
+    return particlesObj_list
+
+
+def generate_particles_from_df(particles_df):
+    """Generates a list of Particulates objects from a pandas DataFrame."""
+
+    particlesObj_list = []
+    for _, row in particles_df.iterrows():
+        particlesObj_list.append(
+            Particulates(
+                Pname=row["Name"],
+                Pform=row["form"],
+                Pcomposition=row["composition"],
+                Pdensity_kg_m3=float(row["density_kg_m3"]),
+                Pshape=row["shape"],
+                PdimensionX_um=float(row["dimensionX_um"]),
+                PdimensionY_um=float(row["dimensionY_um"]),
+                PdimensionZ_um=float(row["dimensionZ_um"]),
             )
         )
 
