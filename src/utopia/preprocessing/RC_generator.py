@@ -85,14 +85,19 @@ def fragmentation(particle, model):
         "Impacted_Soil": 100,
         "Air": 0,
     }
-
-    # fragmentation rate in seconds
-    frag_rate = (
-        ((1 / (float(model.t_frag_gen_FreeSurfaceWater))) / 24 * 60 * 60)
+    t_frag_d = (
+        float(model.t_frag_gen_FreeSurfaceWater)
         * MP_form_factors[particle.Pform]
         * compartment_factors[particle.Pcompartment.Cname]
-        * (float(particle.diameter_um) / model.big_bin_diameter_um)
     )
+
+    if t_frag_d == 0:
+        frag_rate = 0
+    else:
+        # fragmentation rate in seconds and scaled to the size fraction
+        frag_rate = (
+            (1 / (t_frag_d * 24 * 60 * 60)) * float(particle.diameter_um) / 1000
+        )  # model.big_bin_diameter_um
 
     # The distribution of mass is expressed via the fragment size distribution matrix fsd (https://microplastics-cluster.github.io/fragment-mnp/advanced-usage/fragment-size-distribution.html) that is estimated from the fragmentation style of the plastic type (FI).
     # In this matrix the smallest size fraction is in the first possition and we consider no fragmentation for this size class
@@ -273,12 +278,14 @@ def heteroaggregation(particle, model):
     # the collision rate constant
 
     alpha = alpha_heter[particle.Pform]
-
-    model.spm.calc_numConc(
-        concMass_mg_L=float(particle.Pcompartment.SPM_mgL), concNum_part_L=0
-    )
-    SPM_concNum_part_m3 = model.spm.concNum_part_m3
-    k_hetAgg = float(alpha) * k_coll * SPM_concNum_part_m3
+    if alpha == 0:
+        k_hetAgg = 0
+    else:
+        model.spm.calc_numConc(
+            concMass_mg_L=float(particle.Pcompartment.SPM_mgL), concNum_part_L=0
+        )
+        SPM_concNum_part_m3 = model.spm.concNum_part_m3
+        k_hetAgg = float(alpha) * k_coll * SPM_concNum_part_m3
     # the pseudo first-order heteroaggregation rate constant
 
     return k_hetAgg
@@ -349,17 +356,30 @@ def heteroaggregate_breackup(particle, model):
 
     k_coll = k_peri + k_ortho + k_diffSettling
     # the collision rate constant
+    if particle.Pform == "heterMP":
 
-    alpha = alpha_heter[particle.Pform]
+        alpha = alpha_heter["freeMP"]
+        model.spm.calc_numConc(
+            concMass_mg_L=float(particle.Pcompartment.SPM_mgL), concNum_part_L=0
+        )
+        SPM_concNum_part_m3 = model.spm.concNum_part_m3
+        k_hetAgg = float(alpha) * k_coll * SPM_concNum_part_m3
+        # the pseudo first-order heteroaggregation rate constant
 
-    model.spm.calc_numConc(
-        concMass_mg_L=float(particle.Pcompartment.SPM_mgL), concNum_part_L=0
-    )
-    SPM_concNum_part_m3 = model.spm.concNum_part_m3
-    k_hetAgg = float(alpha) * k_coll * SPM_concNum_part_m3
-    # the pseudo first-order heteroaggregation rate constant
+        k_aggBreakup = (1 / 1000000000) * k_hetAgg
+    elif particle.Pform == "heterBiofMP":
+        alpha = alpha_heter["biofMP"]
 
-    k_aggBreakup = (1 / 1000000000) * k_hetAgg
+        model.spm.calc_numConc(
+            concMass_mg_L=float(particle.Pcompartment.SPM_mgL), concNum_part_L=0
+        )
+        SPM_concNum_part_m3 = model.spm.concNum_part_m3
+        k_hetAgg = float(alpha) * k_coll * SPM_concNum_part_m3
+        # the pseudo first-order heteroaggregation rate constant
+
+        k_aggBreakup = (1 / 1000000000) * k_hetAgg
+    else:
+        k_aggBreakup = 0
 
     return k_aggBreakup
 

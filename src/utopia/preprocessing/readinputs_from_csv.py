@@ -1,11 +1,9 @@
 # reads inputs from csv files and instantiates compartments and sets interactions between them
 
-
-from objects_generation import *
 import csv
 import pandas as pd
 import numpy as np
-from objects_generation import *
+from preprocessing.objects_generation import *
 
 
 def instantiate_compartments(inputs_path_file):

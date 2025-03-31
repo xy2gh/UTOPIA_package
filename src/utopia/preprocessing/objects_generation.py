@@ -4,11 +4,11 @@ import math
 import copy
 
 from globalConstants import *
-from compartment_classes import *
-from particulate_classes import *
-from box_class import *
+from objects.compartment_classes import *
+from objects.particulate_classes import *
+from objects.box_class import *
 
-from readinputs_from_csv import *
+from preprocessing.readinputs_from_csv import *
 
 
 def generate_objects(

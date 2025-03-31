@@ -7,13 +7,6 @@ import numpy as np
 
 def solver_SS(model):
 
-    particle_compartmentCoding = dict(
-        zip(
-            model.dict_comp.keys(),
-            list(range(len(model.dict_comp.keys()))),
-        )
-    )
-
     # read the emissions dictionary to generate the list of emissions for the ODES (input_flows_g_s)
     sp_imputs = []
     q_mass_g_s = []
@@ -23,7 +16,7 @@ def solver_SS(model):
             sp_imputs.append(
                 size_bin
                 + model.particle_forms_coding[model.MP_form]
-                + str(particle_compartmentCoding[compartment])
+                + str(model.particle_compartmentCoding[compartment])
                 + "_"
                 + model.boxName
             )

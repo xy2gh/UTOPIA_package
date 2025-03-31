@@ -6,13 +6,13 @@ import os
 from datetime import datetime
 import math
 import numpy as np
-from objects_generation import *
-from generate_rate_constants import *
-from fill_interactions_df import *
+from preprocessing.objects_generation import *
+from preprocessing.generate_rate_constants import *
+from preprocessing.fill_interactions_df import *
 from solver_steady_state import *
 
 
-class utopia:
+class utopiaModel:
     """The class that controls usage of the UTOPIA model
     Parameters
     ----------
@@ -143,7 +143,7 @@ class utopia:
         self.radius_algae_m = ((3.0 / 4.0) * (self.vol_algal_cell_m3 / math.pi)) ** (
             1.0 / 3.0
         )
-        self.spm_radius_um = self.vol_algal_cell_m3 * 1e6
+        self.spm_radius_um = self.radius_algae_m * 1e6
 
         # Emission scenario
         self.emiss_dict_g_s = self.data["emiss_dict_g_s"]
@@ -178,7 +178,7 @@ class utopia:
             raise ValueError("Shape not supported yet")
 
     def generate_coding_dictionaries(self):
-        """Generates size-related dictionaries as attributes."""
+        """Generates Mp form, size and compartment coding dictionaries as attributes."""
         if self.particles_df is None:
             raise ValueError("Particles DataFrame has not been generated.")
 
@@ -197,6 +197,17 @@ class utopia:
         self.particle_forms_coding = dict(zip(self.MPforms_list, ["A", "B", "C", "D"]))
         self.MP_form_dict_reverse = {
             v: k for k, v in self.particle_forms_coding.items()
+        }
+
+        # Dictionary mapping compartment names to compartment codes
+        self.particle_compartmentCoding = dict(
+            zip(
+                self.compartments_list,
+                list(range(len(self.compartments_list))),
+            )
+        )
+        self.comp_dict_inverse = {
+            v: k for k, v in self.particle_compartmentCoding.items()
         }
 
     def run(self):
@@ -218,10 +229,11 @@ class utopia:
             spm_density_kg_m3=self.spm_density_kg_m3,
             spm_radius_um=self.spm_radius_um,
         )
+        print("Generated model objects.")
 
         # Estimate rate contants for all processess for each particle in the system
         generate_rate_constants(self)
-        print("Generated model rate constants for model particles.")
+        print("Generated rate constants for model particles.")
 
         # Build matrix of interactions
         self.interactions_df = fillInteractions_fun_OOP(
@@ -229,6 +241,7 @@ class utopia:
             SpeciesList=self.SpeciesList,
             dict_comp=self.dict_comp,
         )
+        print("Built matrix of interactions.")
         # Solve system of ODEs
         if self.solver == "SteadyState":
 
@@ -238,6 +251,13 @@ class utopia:
             print("Solved system of ODEs for steady state.")
         else:
             raise ValueError("Solver not implemented yet")
+
+        # Test that there are no negative results
+        for i, idx in zip(self.R["mass_g"], self.R.index):
+            if i < 0:
+                print("negative values in the solution for " + idx)
+            else:
+                pass
 
     def summarize(self):
         """Prints a summary of the model's key parameters."""
