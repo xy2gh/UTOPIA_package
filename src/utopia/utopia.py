@@ -91,10 +91,11 @@ class utopiaModel:
             "vol_algal_cell_m3",
             "spm_density_kg_m3",
             "comp_input_file_name",
-            "comp_interactions_file_name",
+            "comp_interactFile_name",
             "boxName",
             "MPforms_list",
             "solver",
+            "compartment_types",
         ]
 
         self.check_required_keys(data, required_data_keys, "data")
@@ -127,7 +128,7 @@ class utopiaModel:
         self.vol_algal_cell_m3 = self.config["vol_algal_cell_m3"]
         self.spm_density_kg_m3 = self.config["spm_density_kg_m3"]
         self.comp_input_file_name = self.config["comp_input_file_name"]
-        self.comp_interactions_file_name = self.config["comp_interactions_file_name"]
+        self.comp_interactFile_name = self.config["comp_interactFile_name"]
         self.boxName = self.config["boxName"]
 
         self.MPforms_list = self.config["MPforms_list"]
@@ -138,6 +139,7 @@ class utopiaModel:
             f"data/{self.comp_input_file_name}", "Cname"
         )
         self.solver = self.config["solver"]
+        self.compartment_types = self.config["compartment_types"]
 
         # Derived environmental parameters
         self.radius_algae_m = ((3.0 / 4.0) * (self.vol_algal_cell_m3 / math.pi)) ** (
@@ -220,15 +222,7 @@ class utopiaModel:
             self.spm,
             self.dict_comp,
             self.particles_properties_df,
-        ) = generate_objects(
-            boxName=self.boxName,
-            MPforms_list=self.MPforms_list,
-            comp_input_file_name=self.comp_input_file_name,
-            comp_interactFile_name=self.comp_interactions_file_name,
-            particles_df=self.particles_df,
-            spm_density_kg_m3=self.spm_density_kg_m3,
-            spm_radius_um=self.spm_radius_um,
-        )
+        ) = generate_objects(self)
         print("Generated model objects.")
 
         # Estimate rate contants for all processess for each particle in the system

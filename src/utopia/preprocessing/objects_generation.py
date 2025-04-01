@@ -11,18 +11,10 @@ from objects.box_class import *
 from preprocessing.readinputs_from_csv import *
 
 
-def generate_objects(
-    boxName,
-    MPforms_list,
-    comp_input_file_name,
-    comp_interactFile_name,
-    particles_df,
-    spm_density_kg_m3,
-    spm_radius_um,
-):
+def generate_objects(model):
     """Function for generating the UTOPIA model objects: model box, model compartments and the model particles"""
     # Boxes
-    UTOPIA = Box(boxName)
+    UTOPIA = Box(model.boxName)
     # print(f"The model box {boxName} has been created")
 
     modelBoxes = [UTOPIA]
@@ -31,11 +23,13 @@ def generate_objects(
 
     # Compartmets
     """Call read imput file function for compartments"""
-    inputs_path_file = f"data/{comp_input_file_name}"
-    compartments = instantiate_compartments(inputs_path_file)
+    inputs_path_file = f"data/{model.comp_input_file_name}"
+    compartments = instantiate_compartments(
+        inputs_path_file=inputs_path_file, compartment_types=model.compartment_types
+    )
 
     # Establish connexions between compartments defining their interaction mechanism: only listed those compartments wich will recieve particles from the define compartment. i.e. the ocean surface water compartment transports particles to the ocean mix layer through settling and to air through sea spray resuspension
-    connexions_path_file = f"data/{comp_interactFile_name}"
+    connexions_path_file = f"data/{model.comp_interactFile_name}"
     set_interactions(compartments, connexions_path_file)
 
     # Assign modelling code to compartments
@@ -59,7 +53,7 @@ def generate_objects(
 
     # MP_freeParticles = instantiateParticles_from_csv(inputs_path + mp_imputFile_name)
 
-    MP_freeParticles = generate_particles_from_df(particles_df)
+    MP_freeParticles = generate_particles_from_df(model.particles_df)
 
     dict_size_coding = dict(
         zip(
@@ -78,9 +72,9 @@ def generate_objects(
         Pname="spm1",
         Pform="suspendedParticulates",
         Pcomposition="Mixed",
-        Pdensity_kg_m3=spm_density_kg_m3,
+        Pdensity_kg_m3=model.spm_density_kg_m3,
         Pshape="sphere",
-        PdimensionX_um=spm_radius_um,
+        PdimensionX_um=model.spm_radius_um,
         PdimensionY_um=0,
         PdimensionZ_um=0,
     )
@@ -182,15 +176,11 @@ def generate_objects(
 
     # Generate list of species names and add code name to object
     SpeciesList = generate_system_species_list(
-        system_particle_object_list, MPforms_list, compartmentNames_list, boxNames_list
+        system_particle_object_list,
+        model.MPforms_list,
+        compartmentNames_list,
+        boxNames_list,
     )
-
-    # model_lists = dict(
-    #     zip(
-    #         ["compartmentNames_list", "boxNames_list", "dict_size_coding"],
-    #         [compartmentNames_list, boxNames_list, dict_size_coding],
-    #     )
-    # )
 
     return (
         system_particle_object_list,

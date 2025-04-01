@@ -96,8 +96,10 @@ def fragmentation(particle, model):
     else:
         # fragmentation rate in seconds and scaled to the size fraction
         frag_rate = (
-            (1 / (t_frag_d * 24 * 60 * 60)) * float(particle.diameter_um) / 1000
-        )  # model.big_bin_diameter_um
+            (1 / (t_frag_d * 24 * 60 * 60))
+            * float(particle.diameter_um)
+            / model.big_bin_diameter_um
+        )
 
     # The distribution of mass is expressed via the fragment size distribution matrix fsd (https://microplastics-cluster.github.io/fragment-mnp/advanced-usage/fragment-size-distribution.html) that is estimated from the fragmentation style of the plastic type (FI).
     # In this matrix the smallest size fraction is in the first possition and we consider no fragmentation for this size class

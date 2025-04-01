@@ -6,7 +6,19 @@ import numpy as np
 from preprocessing.objects_generation import *
 
 
-def instantiate_compartments(inputs_path_file):
+def instantiate_compartments(inputs_path_file, compartment_types):
+
+    UTOPIA_surfaceSea_water_compartments = compartment_types[
+        "UTOPIA_surfaceSea_water_compartments"
+    ]
+    UTOPIA_water_compartments = compartment_types["UTOPIA_water_compartments"]
+    UTOPIA_deep_soil_compartments = compartment_types["UTOPIA_deep_soil_compartments"]
+    UTOPIA_soil_surface_compartments = compartment_types[
+        "UTOPIA_soil_surface_compartments"
+    ]
+    UTOPIA_sediment_compartment = compartment_types["UTOPIA_sediment_compartment"]
+    UTOPIA_air_compartments = compartment_types["UTOPIA_air_compartments"]
+
     with open(inputs_path_file, "r") as f:
         reader = csv.DictReader(f)
         compartments = list(reader)

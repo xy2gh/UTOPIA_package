@@ -79,25 +79,6 @@ class Compartment:
 
 """Compartment Subclasses (inheritances) of the class compartment add extra attributes to the compatment that define the type of compartment (i.e. compartment processess) """
 
-from examples_input import *
-
-UTOPIA_surfaceSea_water_compartments = full_config["compartment_types"][
-    "UTOPIA_surfaceSea_water_compartments"
-]
-UTOPIA_water_compartments = full_config["compartment_types"][
-    "UTOPIA_water_compartments"
-]
-UTOPIA_deep_soil_compartments = full_config["compartment_types"][
-    "UTOPIA_deep_soil_compartments"
-]
-UTOPIA_soil_surface_compartments = full_config["compartment_types"][
-    "UTOPIA_soil_surface_compartments"
-]
-UTOPIA_sediment_compartment = full_config["compartment_types"][
-    "UTOPIA_sediment_compartment"
-]
-UTOPIA_air_compartments = full_config["compartment_types"]["UTOPIA_air_compartments"]
-
 
 class compartment_water(Compartment):
 
