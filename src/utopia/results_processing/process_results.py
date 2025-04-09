@@ -3,18 +3,21 @@ import numpy as np
 import seaborn as sns
 from matplotlib.colors import LogNorm
 import pandas as pd
+from helpers import *
+from preprocessing.fill_interactions_dictionaries import *
 
 
 class ResultsProcessor:
-    """Provides functionalities for restructuring, analising and plotting the UTOPIA model results."""
+    """Provides functionalities for restructuring, analysing and plotting the UTOPIA model results."""
 
     def __init__(self, model):
+
         self.model = model
         self.R = model.R
         self.Results_extended = None
 
     def process_results(self):
-        """Reformat results from the Utopia pipeline for easier downstream analysis."""
+        """Reformat results dataframe for easier analysis by specifying size fractions, MP forms and compartments and deriving mass and number fractions, input and outup flows."""
         # Reformat results (R) dataframe
         self.R["Size_Fraction_um"] = [self.model.size_dict[x[0]] for x in self.R.index]
         self.R["MP_Form"] = [
@@ -53,8 +56,148 @@ class ResultsProcessor:
         number_fraction_df = Results_extended.loc[
             :, ["Compartment", "MP_Form", "Size_Fraction_um", "number_fraction"]
         ]
-        self.Results_extended = Results_extended
-        return self.Results_extended
+
+        """ Add input and output flows dict to results extended dataframe"""
+
+        Results_extended2 = self.addFlows_to_results_df(Results_extended)
+
+        """ Fix input flows dict to results extended dataframe"""
+
+        interactions_pp_df = fillInteractions_fun_OOP_dict(
+            self.model.system_particle_object_list,
+            self.model.SpeciesList,
+            self.surfComp_list,
+        )
+        # Estimate Pnum_SS (particle number at steady state) for each particle object in the system
+        for p in self.model.system_particle_object_list:
+            p.Pnum_SS = mass_to_num(p.Pmass_g_SS, p.Pvolume_m3, p.Pdensity_kg_m3)
+        # Create a dictionary of recieving inflows per particle taking the values from the interactions matrix
+        particle_inflows_dict_mass = {}
+        particle_inflows_dict_number = {}
+        for p in self.model.system_particle_object_list:
+            inflows_p_mass = []
+            inflows_p_num = []
+            emission_rate_g_s = self.model.emiss_dict_g_s[p.Pcompartment.Cname][
+                p.Pcode[0]
+            ]
+            emission_rate_num_s = mass_to_num(
+                emission_rate_g_s, p.Pvolume_m3, p.Pdensity_kg_m3
+            )
+            for p2 in self.model.system_particle_object_list:
+                interaction_rate = interactions_pp_df[p2.Pcode][p.Pcode]
+                if type(interaction_rate) == dict:
+                    inflow = {k: v * p2.Pmass_g_SS for k, v in interaction_rate.items()}
+                    inflows_p_mass.append(inflow)
+                    inflows_p_num.append(
+                        {k: v * p2.Pnum_SS for k, v in interaction_rate.items()}
+                    )
+                else:
+                    inflows_p_mass.append(interaction_rate * p2.Pmass_g_SS)
+                    inflows_p_num.append(interaction_rate * p2.Pnum_SS)
+            dict_list = [item for item in inflows_p_mass if isinstance(item, dict)]
+            dict_list_num = [item for item in inflows_p_num if isinstance(item, dict)]
+            merged_dict = {}
+            merged_dict_num = {}
+            for d in dict_list:
+                for k, v in d.items():
+                    if k in merged_dict:
+                        merged_dict[k] += v
+                    else:
+                        merged_dict[k] = v
+            for d in dict_list_num:
+                for k, v in d.items():
+                    if k in merged_dict_num:
+                        merged_dict_num[k] += v
+                    else:
+                        merged_dict_num[k] = v
+
+            particle_inflows_dict_mass[p.Pcode] = merged_dict
+            particle_inflows_dict_number[p.Pcode] = merged_dict_num
+            # Add the emission rate to the inflow dictionary
+            merged_dict["Emission_flow"] = emission_rate_g_s
+            merged_dict_num["Emission_flow"] = emission_rate_num_s
+
+        # Substitute the inputflow values in the results_extended dataframe:
+        for ele in particle_inflows_dict_mass:
+            Results_extended2.at[ele, "inflows_g_s"] = particle_inflows_dict_mass[ele]
+        for ele in particle_inflows_dict_number:
+            Results_extended.at[ele, "inflows_num_s"] = particle_inflows_dict_number[
+                ele
+            ]
+        # Add total input and putput flows to Results extended dataframe
+        Results_extended2["Total_inflows_g_s"] = [
+            sum(Results_extended2.iloc[i].inflows_g_s.values())
+            for i in range(len(Results_extended2))
+        ]
+
+        Results_extended2["Total_outflows_g_s"] = [
+            sum(Results_extended2.iloc[i].outflows_g_s.values())
+            for i in range(len(Results_extended2))
+        ]
+
+        Results_extended2["Total_inflows_num_s"] = [
+            sum(Results_extended2.iloc[i].inflows_num_s.values())
+            for i in range(len(Results_extended2))
+        ]
+
+        Results_extended2["Total_outflows_num_s"] = [
+            sum(Results_extended2.iloc[i].outflows_num_s.values())
+            for i in range(len(Results_extended2))
+        ]
+
+        self.Results_extended = Results_extended2
+
+    def addFlows_to_results_df(self, Results_extended):
+        """Calculate inflows and outflows (mass and number) and update Results_extended."""
+        inflows_mass_list = []
+        inflows_num_list = []
+        outflows_mass_list = []
+        outflows_num_list = []
+
+        for n in range(len(Results_extended)):
+            compartment = Results_extended.iloc[n]["Compartment"]
+            size_fraction = Results_extended.iloc[n]["Size_Fraction_um"]
+            mp_form = Results_extended.iloc[n]["MP_Form"]
+
+            # Calculate inflows and outflows for mass
+            inflows_mass = process_flows(
+                compartment, size_fraction, mp_form, "input_flows", self.flows_dict_mass
+            )
+            outflows_mass = process_flows(
+                compartment,
+                size_fraction,
+                mp_form,
+                "output_flows",
+                self.flows_dict_mass,
+            )
+            inflows_mass_list.append(inflows_mass)
+            outflows_mass_list.append(outflows_mass)
+
+            # Calculate inflows and outflows for number
+            inflows_num = process_flows(
+                compartment,
+                size_fraction,
+                mp_form,
+                "input_flows",
+                self.flows_dict_number,
+            )
+            outflows_num = process_flows(
+                compartment,
+                size_fraction,
+                mp_form,
+                "output_flows",
+                self.flows_dict_number,
+            )
+            inflows_num_list.append(inflows_num)
+            outflows_num_list.append(outflows_num)
+
+        # Update the Results_extended DataFrame with the calculated flows
+        Results_extended["inflows_g_s"] = inflows_mass_list
+        Results_extended["inflows_num_s"] = inflows_num_list
+        Results_extended["outflows_g_s"] = outflows_mass_list
+        Results_extended["outflows_num_s"] = outflows_num_list
+
+        return Results_extended
 
     def plot_fractionDistribution_heatmaps(self, fraction):
         """Plots the mass and number fractions after they have been extracted to the Results_extended df."""
@@ -209,7 +352,7 @@ class ResultsProcessor:
 
     def estimate_flows(self):
 
-        surfComp_list = [c for c in self.model.dict_comp if "Surface" in c]
+        self.surfComp_list = [c for c in self.model.dict_comp if "Surface" in c]
         """Estimate flows corresponding to each mode process based on the model results."""
         # Outflows ( in mass and particle number)
         for p in self.model.system_particle_object_list:
@@ -279,7 +422,7 @@ class ResultsProcessor:
 
                         for proc in inpProc:
                             if proc == "dry_deposition":
-                                position = surfComp_list.index(comp)
+                                position = self.surfComp_list.index(comp)
                                 df_inflows["k_" + proc] = df_inflows["k_" + proc].apply(
                                     lambda x: x[position] if isinstance(x, list) else x
                                 )
@@ -443,17 +586,60 @@ class ResultsProcessor:
         results_by_comp["Concentration_g_m3"] = mass_conc_g_m3
         results_by_comp["Concentration_num_m3"] = num_conc
 
-        self.results_by_comp = results_by_comp
+        # self.results_by_comp = results_by_comp
         # return results_by_comp
+        """Calculate inflows and outflows (mass and number) by compartment and update results_by_comp."""
+        inflows_mass_list = []
+        inflows_num_list = []
+        outflows_mass_list = []
+        outflows_num_list = []
 
-    def process_all(self):
-        """Runs all processing steps in order automatically."""
-        self.process_results()
-        for fraction in ["mass_fraction", "number_fraction"]:
-            self.plot_fractionDistribution_heatmaps(fraction)
-        self.extract_results_by_compartment()
-        self.estimate_flows()
-        self.generate_flows_dict()
+        for n in range(len(results_by_comp)):
+            compartment = results_by_comp.iloc[n]["Compartments"]
+
+            # Calculate inflows and outflows for mass
+            inflows_mass = process_flows_comp(
+                compartment, "input_flows", self.flows_dict_mass
+            )
+            outflows_mass = process_flows_comp(
+                compartment, "output_flows", self.flows_dict_mass
+            )
+            inflows_mass_list.append(inflows_mass)
+            outflows_mass_list.append(outflows_mass)
+
+            # Calculate inflows and outflows for number
+            inflows_num = process_flows_comp(
+                compartment, "input_flows", self.flows_dict_number
+            )
+            outflows_num = process_flows_comp(
+                compartment, "output_flows", self.flows_dict_number
+            )
+            inflows_num_list.append(inflows_num)
+            outflows_num_list.append(outflows_num)
+
+        # Update the Results_extended DataFrame with the calculated flows
+        results_by_comp["inflows_g_s"] = inflows_mass_list
+        results_by_comp["inflows_num_s"] = inflows_num_list
+        results_by_comp["outflows_g_s"] = outflows_mass_list
+        results_by_comp["outflows_num_s"] = outflows_num_list
+        results_by_comp["Total_inflows_g_s"] = [
+            sum(results_by_comp.iloc[i].inflows_g_s.values())
+            for i in range(len(results_by_comp))
+        ]
+        results_by_comp["Total_inflows_num_s"] = [
+            sum(results_by_comp.iloc[i].inflows_num_s.values())
+            for i in range(len(results_by_comp))
+        ]
+        results_by_comp["Total_outflows_g_s"] = [
+            sum(results_by_comp.iloc[i].outflows_g_s.values())
+            for i in range(len(results_by_comp))
+        ]
+        results_by_comp["Total_outflows_num_s"] = [
+            sum(results_by_comp.iloc[i].outflows_num_s.values())
+            for i in range(len(results_by_comp))
+        ]
+
+        self.results_by_comp = results_by_comp
 
     def create_rateConstants_table(self):
         df_dict = {
@@ -495,3 +681,58 @@ class ResultsProcessor:
         plt.xticks(rotation=90)
         plt.title("Distribution of rate constants as log(k_s-1)")
         plt.show()
+
+    def plot_compartment_distribution(
+        self, mass_or_number
+    ):  # mass_or_number: "%_mass" or ""%_number""
+        """Bar chart plot of the mass or particle number distribution of particles by compartment."""
+        compartment_colors = {
+            "Ocean_Surface_Water": "#756bb1",
+            "Ocean_Mixed_Water": "#756bb1",
+            "Ocean_Column_Water": "#756bb1",
+            "Coast_Surface_Water": "#2c7fb8",
+            "Coast_Column_Water": "#2c7fb8",
+            "Surface_Freshwater": "#9ebcda",
+            "Bulk_Freshwater": "#9ebcda",
+            "Sediment_Freshwater": "#fdae6b",
+            "Sediment_Ocean": "#fdae6b",
+            "Sediment_Coast": "#fdae6b",
+            "Beaches_Soil_Surface": "#ffeda0",
+            "Beaches_Deep_Soil": "#ffeda0",
+            "Background_Soil_Surface": "#e5f5e0",
+            "Background_Soil": "#e5f5e0",
+            "Impacted_Soil_Surface": "#d95f0e",
+            "Impacted_Soil": "#d95f0e",
+            "Air": "#deebf7",
+        }
+
+        # Add your dataframe sorting and rounding logic
+        df = (
+            self.results_by_comp[["Compartments", mass_or_number]]
+            .round(2)
+            .sort_values(by=mass_or_number, ascending=False)
+        )
+
+        # Get the list of colors based on the Compartments in the df
+        bar_colors = df["Compartments"].map(compartment_colors)
+
+        # Plot the horizontal bar chart
+        plt.barh(
+            df["Compartments"], df[mass_or_number], color=bar_colors
+        )  # Apply specific colors to each bar
+        plt.xlabel(mass_or_number)
+        plt.ylabel("Compartments")
+        plt.title(f"{mass_or_number} Distribution by Compartment")
+        plt.gca().invert_yaxis()  # Invert y-axis to match sorting order
+        plt.show()
+
+    def process_all(self):
+        """Runs all processing steps in order automatically."""
+        self.estimate_flows()
+        self.generate_flows_dict()
+        self.process_results()
+        for fraction in ["mass_fraction", "number_fraction"]:
+            self.plot_fractionDistribution_heatmaps(fraction)
+        self.extract_results_by_compartment()
+        for fraction in ["%_mass", "%_number"]:
+            self.plot_compartment_distribution(fraction)

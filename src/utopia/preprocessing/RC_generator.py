@@ -111,12 +111,14 @@ def fragmentation(particle, model):
     return k_frag.tolist()
 
 
+from preprocessing.rc_settling import *
+
+
 def settling(particle, model):
     # settling calculations (TO BE REVISITED: different settling regimes depending on the size bin)
     """settling can be calculated using different equations (e.g. Stokes,
-    modified versions of it or others) or be taken from experimental studies
-    !! currently only classical Stokes is implemented (which is probably not
-    very realistic and will be updated soon !!"""
+    modified versions of it or others) now implemented through the rc_settling.py file!!
+    """
 
     # Depending on the compartment we should use a specific water density
 
@@ -125,30 +127,18 @@ def settling(particle, model):
     else:
         w_den_kg_m3 = density_seaWater_kg_m3
 
-    settlingMethod = "Stokes"
+    # settlingMethod = "Stokes"
 
-    if settlingMethod == "Stokes":
-        vSet_m_s = (
-            2
-            / 9
-            * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
-            / mu_w_21C_kg_ms
-            * g_m_s2
-            * (float(particle.radius_m)) ** 2
-        )
-    else:
-        print("Error: cannot calculate settling other than Stokes yet")
-        # print error message settling methods other than Stokes
-        # (to be removed when other settling calculations are implemented)
+    vSet_m_s = calculate_settling_velocity(
+        d_p=particle.diameter_um * 1e-6,
+        rho_p=particle.Pdensity_kg_m3,
+        rho_f=w_den_kg_m3,
+        mu=mu_w_21C_mPas,
+        g=g_m_s2,
+    )
 
-    # for the water and surface water compartments:
-    # settling and rising rate constants for free MP
     if vSet_m_s > 0:
         k_set = vSet_m_s / float(particle.Pcompartment.Cdepth_m)
-
-    elif vSet_m_s < 0:
-        k_set = 0
-
     else:
         k_set = 0
 
@@ -157,13 +147,6 @@ def settling(particle, model):
 
 def rising(particle, model):
     # rising calculations (TO BE REVISITED: also consider non-stokes regimes for smaller particles??)
-    """rising is calculated in the same way as settling for particles with negative
-    settling velocities. It can be calculated using different equations (e.g. Stokes,
-    modified versions of it or others) or be taken from experimental studies
-    !! currently only classical Stokes is implemented (which is probably not
-    very realistic and will be updated soon !!"""
-
-    settlingMethod = "Stokes"
 
     # Rising only occus in the lower water compartments wich for UTOPIA are: ["Ocean Mixed Water",
     # "Ocean Column Water","Coast Column Water","Bulk FreshWater"]
@@ -180,28 +163,29 @@ def rising(particle, model):
         else:
             w_den_kg_m3 = density_seaWater_kg_m3
 
-        if settlingMethod == "Stokes":
-            vSet_m_s = (
-                2
-                / 9
-                * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
-                / mu_w_21C_kg_ms
-                * g_m_s2
-                * (float(particle.radius_m)) ** 2
-            )
-        else:
-            print("Error: cannot calculate settling other than Stokes yet")
-        # print error message settling methods other than Stokes
-        # (to be removed when other settling calculations are implemented)
+        vrise_m_s = calculate_settling_velocity(
+            d_p=particle.diameter_um * 1e-6,
+            rho_p=particle.Pdensity_kg_m3,
+            rho_f=w_den_kg_m3,
+            mu=mu_w_21C_mPas,
+            g=g_m_s2,
+        )
+        # calculate_rising_velocity(
+        #     d_p=particle.diameter_um * 1e-6,
+        #     rho_p=particle.Pdensity_kg_m3,
+        #     rho_f=w_den_kg_m3,
+        #     mu=mu_w_21C_mPas,
+        #     g=g_m_s2,
+        # )
     else:
-        vSet_m_s = 0
+        vrise_m_s = 0
     # for the water and surface water compartments:
     # settling and rising rate constants for free MP
-    if vSet_m_s > 0:
+    if vrise_m_s > 0:
         k_rise = 0
 
-    elif vSet_m_s < 0:
-        k_rise = -vSet_m_s / float(particle.Pcompartment.Cdepth_m)
+    elif vrise_m_s < 0:
+        k_rise = -vrise_m_s / float(particle.Pcompartment.Cdepth_m)
 
     else:
         k_rise = 0
@@ -538,7 +522,7 @@ def sediment_resuspension(particle, model):
 def burial(particle, model):
     # Currenlty place holder values. To be revisited
 
-    # When no depth parameter available assign burail rate taken from SimpleBox for Plastics model
+    # When no depth parameter available assign burial rate taken from SimpleBox for Plastics model
     burial_dict = {
         "Sediment_Freshwater": 2.7e-9,
         "Sediment_Coast": 1e-9,
@@ -728,6 +712,18 @@ def sea_spray_aerosol(particle, model):
     k_sea_spray_aerosol = ssa_rate_dict[particle.Pcode[0]] / float(
         particle.Pcompartment.Cdepth_m
     )
+
+    # Using the new approach stablished in rc_sea_spray_aerosol.py
+    # from preprocessing.rc_sea_spray_aerosol import*
+    # k_sea_spray_aerosol = aerosolization_rate_constant(U10, C, d_p, rho_p, A_w, h)
+    # Parameters:
+    # U10       : Wind speed at 10 m height (m/s)
+    # C         : MNP concentration in water (m⁻³) in mass or in number???
+    # d_p       : Particle diameter (m)
+    # rho_p     : Particle density (kg/m³)
+    # A_w       : Surface area of the water compartment (m²)
+    # h         : Depth of the water compartment (m)
+    # k_sea_spray_aerosol = aerosolization_rate_constant(U10=2, C=particle.C_g_m3_SS, d_p=particle.diameter_um*1e-6, rho_p=particle.density_kg_m3, A_w=particle.Pcompartment.CsurfaceArea_m2, h=particle.Pcompartment.Cdepth_m)
 
     return k_sea_spray_aerosol
 
