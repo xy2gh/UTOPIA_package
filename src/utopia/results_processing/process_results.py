@@ -5,6 +5,9 @@ from matplotlib.colors import LogNorm
 import pandas as pd
 from helpers import *
 from preprocessing.fill_interactions_dictionaries import *
+from results_processing.exposure_indicators_calculation import *
+from solver_steady_state import *
+from results_processing.emission_fractions_calculation import *
 
 
 class ResultsProcessor:
@@ -736,3 +739,14 @@ class ResultsProcessor:
         self.extract_results_by_compartment()
         for fraction in ["%_mass", "%_number"]:
             self.plot_compartment_distribution(fraction)
+
+    def estimate_exposure_indicators(self):
+        """Estimate overall size dependent exposure indicators"""
+        Exposure_indicators_calculation(self)
+
+    def estimate_emission_fractions(self):
+        """Estimate mass emission fractions:
+        - Environmentally Dispersed Fraction (ϕ1): quantifies the relative extent to which the pollutants (MPs) can reach remote regions.
+        - Remotely transferred fraction of mass (ϕ2) expresses the relative extent to which the MPs are (net) transferred to the target remote compartment following environmental dispersion to the remote region.
+        """
+        self.emission_fractions_mass_data = estimate_emission_fractions(self)

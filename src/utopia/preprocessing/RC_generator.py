@@ -116,37 +116,80 @@ from preprocessing.rc_settling import *
 
 def settling(particle, model):
     # settling calculations (TO BE REVISITED: different settling regimes depending on the size bin)
-    """settling can be calculated using different equations (e.g. Stokes,
-    modified versions of it or others) now implemented through the rc_settling.py file!!
-    """
 
-    # Depending on the compartment we should use a specific water density
+    ### OLD VERSION to be changed by the below approach ###
 
     if "Freshwater" in particle.Pcompartment.Cname:
         w_den_kg_m3 = density_w_21C_kg_m3
     else:
         w_den_kg_m3 = density_seaWater_kg_m3
 
-    # settlingMethod = "Stokes"
+    settlingMethod = "Stokes"
 
-    vSet_m_s = calculate_settling_velocity(
-        d_p=particle.diameter_um * 1e-6,
-        rho_p=particle.Pdensity_kg_m3,
-        rho_f=w_den_kg_m3,
-        mu=mu_w_21C_mPas,
-        g=g_m_s2,
-    )
+    # Settling occurs in all aquatic compartments which should be specified in the comprtment class
+    # if particle.Pcompartment.Cname in ["Sediment", "Agricultural Soil","Urban Soil"...]
+    #     k_set = 0
 
+    if settlingMethod == "Stokes":
+        vSet_m_s = (
+            2
+            / 9
+            * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
+            / mu_w_21C_kg_ms
+            * g_m_s2
+            * (float(particle.radius_m)) ** 2
+        )
+    else:
+        print("Error: cannot calculate settling other than Stokes yet")
+        # print error message settling methods other than Stokes
+        # (to be removed when other settling calculations are implemented)
+
+    # for the water and surface water compartments:
+    # settling and rising rate constants for free MP
     if vSet_m_s > 0:
         k_set = vSet_m_s / float(particle.Pcompartment.Cdepth_m)
+
+    elif vSet_m_s < 0:
+        k_set = 0
+
     else:
         k_set = 0
+
+    # """settling can be calculated using different equations (e.g. Stokes,
+    # modified versions of it or others) now implemented through the rc_settling.py file!!
+    # """
+
+    # # Depending on the compartment we should use a specific water density
+
+    # if "Freshwater" in particle.Pcompartment.Cname:
+    #     w_den_kg_m3 = density_w_21C_kg_m3
+    # else:
+    #     w_den_kg_m3 = density_seaWater_kg_m3
+
+    # # settlingMethod = "Stokes"
+
+    # vSet_m_s = calculate_settling_velocity(
+    #     d_p=particle.diameter_um * 1e-6,
+    #     rho_p=particle.Pdensity_kg_m3,
+    #     rho_f=w_den_kg_m3,
+    #     mu=mu_w_21C_mPas,
+    #     g=g_m_s2,
+    # )
+
+    # if vSet_m_s > 0:
+    #     k_set = vSet_m_s / float(particle.Pcompartment.Cdepth_m)
+    # else:
+    #     k_set = 0
 
     return k_set
 
 
 def rising(particle, model):
     # rising calculations (TO BE REVISITED: also consider non-stokes regimes for smaller particles??)
+
+    ### OLD VERSION to be changed by the below approach ?###
+
+    settlingMethod = "Stokes"
 
     # Rising only occus in the lower water compartments wich for UTOPIA are: ["Ocean Mixed Water",
     # "Ocean Column Water","Coast Column Water","Bulk FreshWater"]
@@ -163,32 +206,73 @@ def rising(particle, model):
         else:
             w_den_kg_m3 = density_seaWater_kg_m3
 
-        vrise_m_s = calculate_settling_velocity(
-            d_p=particle.diameter_um * 1e-6,
-            rho_p=particle.Pdensity_kg_m3,
-            rho_f=w_den_kg_m3,
-            mu=mu_w_21C_mPas,
-            g=g_m_s2,
-        )
-        # calculate_rising_velocity(
-        #     d_p=particle.diameter_um * 1e-6,
-        #     rho_p=particle.Pdensity_kg_m3,
-        #     rho_f=w_den_kg_m3,
-        #     mu=mu_w_21C_mPas,
-        #     g=g_m_s2,
-        # )
+        if settlingMethod == "Stokes":
+            vSet_m_s = (
+                2
+                / 9
+                * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
+                / mu_w_21C_kg_ms
+                * g_m_s2
+                * (float(particle.radius_m)) ** 2
+            )
+        else:
+            print("Error: cannot calculate settling other than Stokes yet")
+        # print error message settling methods other than Stokes
+        # (to be removed when other settling calculations are implemented)
     else:
-        vrise_m_s = 0
+        vSet_m_s = 0
     # for the water and surface water compartments:
     # settling and rising rate constants for free MP
-    if vrise_m_s > 0:
+    if vSet_m_s > 0:
         k_rise = 0
 
-    elif vrise_m_s < 0:
-        k_rise = -vrise_m_s / float(particle.Pcompartment.Cdepth_m)
+    elif vSet_m_s < 0:
+        k_rise = -vSet_m_s / float(particle.Pcompartment.Cdepth_m)
 
     else:
         k_rise = 0
+
+    # Rising only occus in the lower water compartments wich for UTOPIA are: ["Ocean Mixed Water",
+    # "Ocean Column Water","Coast Column Water","Bulk FreshWater"]
+
+    # if particle.Pcompartment.Cname in [
+    #     "Ocean_Mixed_Water",
+    #     "Ocean_Column_Water",
+    #     "Coast_Column_Water",
+    #     "Bulk_Freshwater",
+    # ]:
+
+    #     if "Freshwater" in particle.Pcompartment.Cname:
+    #         w_den_kg_m3 = density_w_21C_kg_m3
+    #     else:
+    #         w_den_kg_m3 = density_seaWater_kg_m3
+
+    #     vrise_m_s = calculate_settling_velocity(
+    #         d_p=particle.diameter_um * 1e-6,
+    #         rho_p=particle.Pdensity_kg_m3,
+    #         rho_f=w_den_kg_m3,
+    #         mu=mu_w_21C_mPas,
+    #         g=g_m_s2,
+    #     )
+    #     # calculate_rising_velocity(
+    #     #     d_p=particle.diameter_um * 1e-6,
+    #     #     rho_p=particle.Pdensity_kg_m3,
+    #     #     rho_f=w_den_kg_m3,
+    #     #     mu=mu_w_21C_mPas,
+    #     #     g=g_m_s2,
+    #     # )
+    # else:
+    #     vrise_m_s = 0
+    # # for the water and surface water compartments:
+    # # settling and rising rate constants for free MP
+    # if vrise_m_s > 0:
+    #     k_rise = 0
+
+    # elif vrise_m_s < 0:
+    #     k_rise = -vrise_m_s / float(particle.Pcompartment.Cdepth_m)
+
+    # else:
+    #     k_rise = 0
 
     return k_rise
 
