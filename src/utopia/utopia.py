@@ -11,6 +11,8 @@ from preprocessing.generate_rate_constants import *
 from preprocessing.fill_interactions_df import *
 from solver_steady_state import *
 
+import json
+
 
 class utopiaModel:
     """The class that controls usage of the UTOPIA model
