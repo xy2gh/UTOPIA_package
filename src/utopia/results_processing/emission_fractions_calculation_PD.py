@@ -1,49 +1,11 @@
 import copy
 import pandas as pd
 
+
 # from results_processing.process_results import ResultsProcessor
 import matplotlib.pyplot as plt
 
-# compartments that microplastics can be emitted to
-emission_comp_list = ["Air",
-                      "Ocean_Surface_Water",
-                      "Coast_Surface_Water"
-                      "Ocean_Mixed_Water",
-                      # "Ocean_Column_Water",
-                      "Coast_Column_Water",
-                      "Surface_Freshwater",
-                      "Bulk_Freshwater",
-                      # "Beaches_Deep_Soil",
-                      # "Background_Soil",
-                      # "Impacted_Soil",
-                      "Beaches_Soil_Surface",
-                      "Background_Soil_Surface",
-                      "Impacted_Soil_Surface",
-                      # "Sediment_Freshwater",
-                      # "Sediment_Ocean",
-                      # "Sediment_Coast",
-                      ]
-# compartments that are considered to disperse the particles to remote regions
-dispersing_comp_list = ["Air", 
-                        "Ocean_Mixed_Water", 
-                        "Ocean_Surface_Water",
-                        ]
-# compartments that are considered to be the remote regions where the particles can be transferred
-surface_comp_list = ["Ocean_Surface_Water",
-                    "Coast_Surface_Water",
-                    "Beaches_Soil_Surface",
-                    "Background_Soil_Surface",
-                    "Impacted_Soil_Surface",]
-# compartments that are considered to be the remotely deep regions where the particles can be accumulated
-deep_comp_list = ["Impacted_Soil",
-                  "Background_Soil",
-                  "Sediment_Freshwater",
-                  "Beaches_Deep_Soil",
-                  "Sediment_Coast",
-                  "Ocean_Column_Water",
-                  "Sediment_Ocean",
-]
-                  
+dispersing_comp_list = ["Air", "Ocean_Mixed_Water", "Ocean_Surface_Water"]            
 
 
 def emission_fractions_calculations(processor, model_results):
@@ -57,12 +19,6 @@ def emission_fractions_calculations(processor, model_results):
     )
     Water_crossectional_area_m2 = 2.68e7  # Assuming a higth of water of 100 m
 
-#!!! 250609 XZ why not use the value from our inputs_compartments.csv file? -- supplying our values below
-    Air_crossectional_area_m2 = (
-        5.10e14  # Assuming a higth of air of 6000 m (From the OECD tool)
-    )
-    Water_crossectional_area_m2 = 2.68e7  # Assuming a higth of water of 100 m
-    
     # Assuming that all the water is ocean water.
 
     Ocean_surface_crosssectional_area_m2 = Water_crossectional_area_m2 * (0.1 / 100)
@@ -83,7 +39,7 @@ def emission_fractions_calculations(processor, model_results):
     # Environmentally Dispersed Fraction (φ1) quantifies the relative extent to which the pollutants (MPs) can reach remote regions.
 
     φ1_dict_mass = {}
-    # φ1_dict_num = {}
+    φ1_dict_num = {}
 
     # Environmentally Dispersed Fractions (ϕ1)
     for R_comp in dispersing_comp_list:
@@ -255,26 +211,6 @@ def emission_fractions_calculations(processor, model_results):
     φ2_mass_table = pd.DataFrame(
         {"Remotely transferred fraction to": φ2_dict_mass.keys(), "φ2": φ2_mass}
     )
-
-
-#!!! 250605 XZ is coding for φ3, the remotely accumulated fraction of mass (ϕ3)
-    """Remotely accumulated fraction of mass (ϕ3)"""
-
-    # φ3 expresses the relative extent to which a the MPs are accumulated into the target remote compartment following transfer to the remote region
-
-    internal_comp_process_list = [
-        "k_discorporation",
-        "k_fragmentation",
-        "k_heteroaggregation",
-        "k_heteroaggregate_breackup",
-        "k_biofouling",
-        "k_defouling",
-    ]
-
-    φ2_dict_mass = {}
-    # φ2_dict_num = {}
-
-
 
     emission_fractions_mass_data = {
         "Emission Fraction": ["φ1", "φ2_1", "φ2_2", "φ2_3", "φ2_4"],
