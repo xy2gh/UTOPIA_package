@@ -5,11 +5,12 @@ import pandas as pd
 # from results_processing.process_results import ResultsProcessor
 import matplotlib.pyplot as plt
 
-dispersing_comp_list = ["Air", "Ocean_Mixed_Water", "Ocean_Surface_Water"]
+dispersing_comp_list = ["Air", "Ocean_Mixed_Water", "Ocean_Surface_Water"]            
 
 
 def emission_fractions_calculations(processor, model_results):
-    """Calculate the emission fractions Following the LRTP metrics of the emission fractions approach (EFA; φ1, φ2, φ3) from https://doi.org/10.1021/acs.est.2c03047 Rigth now we are only calculating φ1 and φ2. The φ3 is not calculated as it is not needed for the model and we only estimate them in mass."""
+    """Calculate the emission fractions Following the LRTP metrics of the emission fractions approach (EFA; φ1, φ2, φ3) from https://doi.org/10.1021/acs.est.2c03047 
+    Right now we are only calculating φ1 and φ2. The φ3 is not calculated as it is not needed for the model and we only estimate them in mass."""
 
     ## We use the same values of Crossectional area for Air and Water as in Breivik et al. 2022 and scale it for our water compartments
 
