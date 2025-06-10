@@ -172,6 +172,7 @@ def emission_fractions_calculations(processor, model_results):
 
     target_remote_comp_List = [
         "Ocean_Surface_Water",
+        "Ocean_Mixed_Water", #!!! 250610 XZ added Ocean_Mixed_Water
         "Ocean_Column_Water",
         "Sediment_Ocean",
         "Beaches_Soil_Surface",
@@ -271,19 +272,21 @@ def emission_fractions_calculations(processor, model_results):
         "k_defouling",
     ]
 
-    φ2_dict_mass = {}
+    φ3_dict_mass = {}
     # φ2_dict_num = {}
 
 
-
+#!!! 250610 XZ added Ocean_Mixed_Water thus φ2 has 5 sub-items.
     emission_fractions_mass_data = {
-        "Emission Fraction": ["φ1", "φ2_1", "φ2_2", "φ2_3", "φ2_4"],
+        "Emission Fraction": ["φ1", "φ2_1", "φ2_2", "φ2_3", "φ2_4", "φ2_5"],
         "y": [sum(φ1_dict_mass.values())] + φ2_mass,
     }
 
     return emission_fractions_mass_data  # , φ1_comp_table
 
 
+
+#!!! 250610 XZ is revising the plot_emission_fractions function
 def plot_emission_fractions(emission_fractions_data, emiss_comp):
     import pandas as pd
     import numpy as np
@@ -297,32 +300,34 @@ def plot_emission_fractions(emission_fractions_data, emiss_comp):
     # emission_fractions_data["y"] =
 
     data = {
-        "x": ["$\phi_1$", "$\phi_21$", "$\phi_22$", "$\phi_23$", "$\phi_24$"],
+        "x": ["$\phi_1$", "$\phi_{2-1}$", "$\phi_{2-2}$", "$\phi_{2-3}$", "$\phi_{2-4}$", "$\phi_{2-5}$"],
         "y": [
             np.log10(x) if x > 0 else np.log10(1e-20)
             for x in emission_fractions_data["y"]
         ],
         "category": [
             "$\phi_1$",
-            "$\phi_21$:Remote Ocean Surface",
-            "$\phi_22$:Remote Ocean Column",
-            "$\phi_23$:Remote Ocean Sediments",
-            "$\phi_24$:Remote Beaches",
+            "$\phi_{2-1}$: Remote Ocean Surface",
+            "$\phi_{2-2}$: Remote Mixed Ocean",
+            "$\phi_{2-3}$: Remote Deep Ocean",
+            "$\phi_{2-4}$: Remote Ocean Sediments",
+            "$\phi_{2-5}$: Remote Beach Surface",
         ],
     }
     df = pd.DataFrame(data)
 
     # Create a dictionary to map unique categories to colors
     colors = {
-        "$\phi_1$": "red",
-        "$\phi_21$:Remote Ocean Surface": "blue",
-        "$\phi_22$:Remote Ocean Column": "green",
-        "$\phi_23$:Remote Ocean Sediments": "orange",
-        "$\phi_24$:Remote Beaches": "purple",
+        "$\phi_1$": "#71b9ecb2",
+        "$\phi_{2-1}$: Remote Ocean Surface":"#56a0d4", 
+        "$\phi_{2-2}$: Remote Mixed Ocean": "#3586c0",
+        "$\phi_{2-3}$: Remote Deep Ocean": "#225980",
+        "$\phi_{2-4}$: Remote Ocean Sediments": "#5a371b",
+        "$\phi_{2-5}$: Remote Beach Surface": "#db8239",
     }
 
     # Plot the DataFrame with different colors per category and add a legend
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8,4), dpi=300)
     for category, color in colors.items():
         df_category = df[df["category"] == category]
         ax.scatter(
@@ -335,6 +340,8 @@ def plot_emission_fractions(emission_fractions_data, emiss_comp):
         )
 
     ax.set_ylim([-12, 0])
+    # ax.set_xticklabels(df["x"], fontsize=12, rotation=0, ha='center')
+    
     plt.ylabel(
         "log10($\phi$)",
         fontsize=14,
@@ -350,11 +357,15 @@ def plot_emission_fractions(emission_fractions_data, emiss_comp):
     )
 
     # Set the legend outside the plot and at the bottom
-    plt.legend(loc="center left", bbox_to_anchor=(1, 0.5), fontsize=14)
-    plt.tight_layout()
+    plt.legend(loc="center left", bbox_to_anchor=(1, 0.5), fontsize=10)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.tight_layout(rect=[0, 0.05, 0.85, 1])
     fig = plt.gcf()
     plt.show()
+    
     return fig
+
 
 
 def estimate_emission_fractions(processor):
