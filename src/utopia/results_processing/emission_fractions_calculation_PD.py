@@ -1,49 +1,11 @@
 import copy
 import pandas as pd
 
+
 # from results_processing.process_results import ResultsProcessor
 import matplotlib.pyplot as plt
 
-# compartments that microplastics can be emitted to
-emission_comp_list = ["Air",
-                      "Ocean_Surface_Water",
-                      "Coast_Surface_Water"
-                      "Ocean_Mixed_Water",
-                      # "Ocean_Column_Water",
-                      "Coast_Column_Water",
-                      "Surface_Freshwater",
-                      "Bulk_Freshwater",
-                      # "Beaches_Deep_Soil",
-                      # "Background_Soil",
-                      # "Impacted_Soil",
-                      "Beaches_Soil_Surface",
-                      "Background_Soil_Surface",
-                      "Impacted_Soil_Surface",
-                      # "Sediment_Freshwater",
-                      # "Sediment_Ocean",
-                      # "Sediment_Coast",
-                      ]
-# compartments that are considered to disperse the particles to remote regions
-dispersing_comp_list = ["Air", 
-                        "Ocean_Mixed_Water", 
-                        "Ocean_Surface_Water",
-                        ]
-# compartments that are considered to be the remote regions where the particles can be transferred
-surface_comp_list = ["Ocean_Surface_Water",
-                    "Coast_Surface_Water",
-                    "Beaches_Soil_Surface",
-                    "Background_Soil_Surface",
-                    "Impacted_Soil_Surface",]
-# compartments that are considered to be the remotely deep regions where the particles can be accumulated
-deep_comp_list = ["Impacted_Soil",
-                  "Background_Soil",
-                  "Sediment_Freshwater",
-                  "Beaches_Deep_Soil",
-                  "Sediment_Coast",
-                  "Ocean_Column_Water",
-                  "Sediment_Ocean",
-]
-                  
+dispersing_comp_list = ["Air", "Ocean_Mixed_Water", "Ocean_Surface_Water"]            
 
 
 def emission_fractions_calculations(processor, model_results):
@@ -57,12 +19,6 @@ def emission_fractions_calculations(processor, model_results):
     )
     Water_crossectional_area_m2 = 2.68e7  # Assuming a higth of water of 100 m
 
-#!!! 250609 XZ why not use the value from our inputs_compartments.csv file? -- supplying our values below
-    Air_crossectional_area_m2 = (
-        5.10e14  # Assuming a higth of air of 6000 m (From the OECD tool)
-    )
-    Water_crossectional_area_m2 = 2.68e7  # Assuming a higth of water of 100 m
-    
     # Assuming that all the water is ocean water.
 
     Ocean_surface_crosssectional_area_m2 = Water_crossectional_area_m2 * (0.1 / 100)
@@ -83,7 +39,7 @@ def emission_fractions_calculations(processor, model_results):
     # Environmentally Dispersed Fraction (φ1) quantifies the relative extent to which the pollutants (MPs) can reach remote regions.
 
     φ1_dict_mass = {}
-    # φ1_dict_num = {}
+    φ1_dict_num = {}
 
     # Environmentally Dispersed Fractions (ϕ1)
     for R_comp in dispersing_comp_list:
@@ -172,7 +128,6 @@ def emission_fractions_calculations(processor, model_results):
 
     target_remote_comp_List = [
         "Ocean_Surface_Water",
-        "Ocean_Mixed_Water", #!!! 250610 XZ added Ocean_Mixed_Water
         "Ocean_Column_Water",
         "Sediment_Ocean",
         "Beaches_Soil_Surface",
@@ -257,36 +212,14 @@ def emission_fractions_calculations(processor, model_results):
         {"Remotely transferred fraction to": φ2_dict_mass.keys(), "φ2": φ2_mass}
     )
 
-
-#!!! 250605 XZ is coding for φ3, the remotely accumulated fraction of mass (ϕ3)
-    """Remotely accumulated fraction of mass (ϕ3)"""
-
-    # φ3 expresses the relative extent to which a the MPs are accumulated into the target remote compartment following transfer to the remote region
-
-    internal_comp_process_list = [
-        "k_discorporation",
-        "k_fragmentation",
-        "k_heteroaggregation",
-        "k_heteroaggregate_breackup",
-        "k_biofouling",
-        "k_defouling",
-    ]
-
-    φ3_dict_mass = {}
-    # φ2_dict_num = {}
-
-
-#!!! 250610 XZ added Ocean_Mixed_Water thus φ2 has 5 sub-items.
     emission_fractions_mass_data = {
-        "Emission Fraction": ["φ1", "φ2_1", "φ2_2", "φ2_3", "φ2_4", "φ2_5"],
+        "Emission Fraction": ["φ1", "φ2_1", "φ2_2", "φ2_3", "φ2_4"],
         "y": [sum(φ1_dict_mass.values())] + φ2_mass,
     }
 
     return emission_fractions_mass_data  # , φ1_comp_table
 
 
-
-#!!! 250610 XZ is revising the plot_emission_fractions function
 def plot_emission_fractions(emission_fractions_data, emiss_comp):
     import pandas as pd
     import numpy as np
@@ -300,34 +233,32 @@ def plot_emission_fractions(emission_fractions_data, emiss_comp):
     # emission_fractions_data["y"] =
 
     data = {
-        "x": ["$\phi_1$", "$\phi_{2-1}$", "$\phi_{2-2}$", "$\phi_{2-3}$", "$\phi_{2-4}$", "$\phi_{2-5}$"],
+        "x": ["$\phi_1$", "$\phi_21$", "$\phi_22$", "$\phi_23$", "$\phi_24$"],
         "y": [
             np.log10(x) if x > 0 else np.log10(1e-20)
             for x in emission_fractions_data["y"]
         ],
         "category": [
             "$\phi_1$",
-            "$\phi_{2-1}$: Remote Ocean Surface",
-            "$\phi_{2-2}$: Remote Mixed Ocean",
-            "$\phi_{2-3}$: Remote Deep Ocean",
-            "$\phi_{2-4}$: Remote Ocean Sediments",
-            "$\phi_{2-5}$: Remote Beach Surface",
+            "$\phi_21$:Remote Ocean Surface",
+            "$\phi_22$:Remote Ocean Column",
+            "$\phi_23$:Remote Ocean Sediments",
+            "$\phi_24$:Remote Beaches",
         ],
     }
     df = pd.DataFrame(data)
 
     # Create a dictionary to map unique categories to colors
     colors = {
-        "$\phi_1$": "#71b9ecb2",
-        "$\phi_{2-1}$: Remote Ocean Surface":"#56a0d4", 
-        "$\phi_{2-2}$: Remote Mixed Ocean": "#3586c0",
-        "$\phi_{2-3}$: Remote Deep Ocean": "#225980",
-        "$\phi_{2-4}$: Remote Ocean Sediments": "#5a371b",
-        "$\phi_{2-5}$: Remote Beach Surface": "#db8239",
+        "$\phi_1$": "red",
+        "$\phi_21$:Remote Ocean Surface": "blue",
+        "$\phi_22$:Remote Ocean Column": "green",
+        "$\phi_23$:Remote Ocean Sediments": "orange",
+        "$\phi_24$:Remote Beaches": "purple",
     }
 
     # Plot the DataFrame with different colors per category and add a legend
-    fig, ax = plt.subplots(figsize=(8,4), dpi=300)
+    fig, ax = plt.subplots()
     for category, color in colors.items():
         df_category = df[df["category"] == category]
         ax.scatter(
@@ -340,8 +271,6 @@ def plot_emission_fractions(emission_fractions_data, emiss_comp):
         )
 
     ax.set_ylim([-12, 0])
-    # ax.set_xticklabels(df["x"], fontsize=12, rotation=0, ha='center')
-    
     plt.ylabel(
         "log10($\phi$)",
         fontsize=14,
@@ -357,15 +286,11 @@ def plot_emission_fractions(emission_fractions_data, emiss_comp):
     )
 
     # Set the legend outside the plot and at the bottom
-    plt.legend(loc="center left", bbox_to_anchor=(1, 0.5), fontsize=10)
-    plt.xticks(fontsize=12)
-    plt.yticks(fontsize=12)
-    plt.tight_layout(rect=[0, 0.05, 0.85, 1])
+    plt.legend(loc="center left", bbox_to_anchor=(1, 0.5), fontsize=14)
+    plt.tight_layout()
     fig = plt.gcf()
     plt.show()
-    
     return fig
-
 
 
 def estimate_emission_fractions(processor):
