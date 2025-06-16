@@ -590,10 +590,10 @@ def defouling(particle, model):
 
 
 def sediment_resuspension(particle, model):
-    # When no depth parameter available assign transfer sediment to water rate taken from SimpleBox for Plastics model
+    # When no depth parameter available assign transfer sediment to ocean water rate taken from SimpleBox for Plastics model
     # Currently placeholder values. To be revisited
     resusp_dict = {
-        "Sediment_Freshwater": 1e-9,
+        "Sediment_Freshwater": 4e-3, # estimated based on the new parameterization from the Full Multi v3.0
         "Sediment_Coast": 1e-10,
         "Sediment_Ocean": 1e-11,
     }
