@@ -7,15 +7,15 @@ from utopia.helpers import generate_fsd_matrix
 
 
 def discorporation(particle, model):
-    # Process by wich the particle looses is corporeal ("particle") form (eq to degradation) though degradation into monomers and oligomers and other degradation products such as carboxylic acids. It is considered an elimination process in this model as UTOPIA only keeps track of the particulate material .
+    # Process by which the particle looses is corporeal ("particle") form (eq to degradation) though degradation into monomers and oligomers and other degradation products such as carboxylic acids. It is considered an elimination process in this model as UTOPIA only keeps track of the particulate material .
     # t_half_deg is provided as input in days and is converted to seconds. It refers to the degradation half-life of free MPs in the biggest size fraction and in the surface water compartments.
-    # List of asumptions
+    # List of assumptions
     # The degradation rate of MPs is size, compartment and aggregation state dependent.
     # 1) Compartment: The degradation rates are slower in the deeper water compartments as well as in the soil and sediment compartments as described by the factors provided in the dict below.
 
     # 2) Aggregation state: The degradation rates are slower in the heteroaggregated particles (10x) but faster when biofouled (2x faster) as described by the factors provided in the dict below. Degradation in Air is also considered slower (to be revisited).
 
-    # 3) Size: The degradation rate is scaled by the surface area to volume ratio, so that smaller particles degrade faster. In this case scale the taken degradation rate of the 50um particles since we use the data from Pfohl et al. 2022 (degradation rate of 6.3 x 10-6 for particles of TPU-ether arom in the size range between 50-200um. We asume this value as discorporation rate for the 50 um MP plastics in free form)
+    # 3) Size: The degradation rate is scaled by the surface area to volume ratio, so that smaller particles degrade faster. In this case scale the taken degradation rate of the 50um particles since we use the data from Pfohl et al. 2022 (degradation rate of 6.3 x 10-6 h-1 for particles of TPU-ether arom in the size range between 50-200um corresponds to a T_half_deg of aprox 12 years (4584 days). We assume this value as discorporation rate for the 50 um MP plastics in free form)
 
     MP_form_factors = {"freeMP": 1, "heterMP": 10, "biofMP": 0.5, "heterBiofMP": 5}
     compartment_factors = {
@@ -119,67 +119,67 @@ def settling(particle, model):
 
     ### OLD VERSION to be changed by the below approach ###
 
-    if "Freshwater" in particle.Pcompartment.Cname:
-        w_den_kg_m3 = density_w_21C_kg_m3
-    else:
-        w_den_kg_m3 = density_seaWater_kg_m3
-
-    settlingMethod = "Stokes"
-
-    # Settling occurs in all aquatic compartments which should be specified in the comprtment class
-    # if particle.Pcompartment.Cname in ["Sediment", "Agricultural Soil","Urban Soil"...]
-    #     k_set = 0
-
-    if settlingMethod == "Stokes":
-        vSet_m_s = (
-            2
-            / 9
-            * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
-            / mu_w_21C_kg_ms
-            * g_m_s2
-            * (float(particle.radius_m)) ** 2
-        )
-    else:
-        print("Error: cannot calculate settling other than Stokes yet")
-        # print error message settling methods other than Stokes
-        # (to be removed when other settling calculations are implemented)
-
-    # for the water and surface water compartments:
-    # settling and rising rate constants for free MP
-    if vSet_m_s > 0:
-        k_set = vSet_m_s / float(particle.Pcompartment.Cdepth_m)
-
-    elif vSet_m_s < 0:
-        k_set = 0
-
-    else:
-        k_set = 0
-
-    # """settling can be calculated using different equations (e.g. Stokes,
-    # modified versions of it or others) now implemented through the rc_settling.py file!!
-    # """
-
-    # # Depending on the compartment we should use a specific water density
-
     # if "Freshwater" in particle.Pcompartment.Cname:
     #     w_den_kg_m3 = density_w_21C_kg_m3
     # else:
     #     w_den_kg_m3 = density_seaWater_kg_m3
 
-    # # settlingMethod = "Stokes"
+    # settlingMethod = "Stokes"
 
-    # vSet_m_s = calculate_settling_velocity(
-    #     d_p=particle.diameter_um * 1e-6,
-    #     rho_p=particle.Pdensity_kg_m3,
-    #     rho_f=w_den_kg_m3,
-    #     mu=mu_w_21C_mPas,
-    #     g=g_m_s2,
-    # )
+    # Settling occurs in all aquatic compartments which should be specified in the comprtment class
+    # if particle.Pcompartment.Cname in ["Sediment", "Agricultural Soil","Urban Soil"...]
+    #     k_set = 0
 
+    # if settlingMethod == "Stokes":
+    #     vSet_m_s = (
+    #         2
+    #         / 9
+    #         * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
+    #         / mu_w_21C_kg_ms
+    #         * g_m_s2
+    #         * (float(particle.radius_m)) ** 2
+    #     )
+    # else:
+    #     print("Error: cannot calculate settling other than Stokes yet")
+    #     # print error message settling methods other than Stokes
+    #     # (to be removed when other settling calculations are implemented)
+
+    # # for the water and surface water compartments:
+    # # settling and rising rate constants for free MP
     # if vSet_m_s > 0:
     #     k_set = vSet_m_s / float(particle.Pcompartment.Cdepth_m)
+
+    # elif vSet_m_s < 0:
+    #     k_set = 0
+
     # else:
     #     k_set = 0
+
+    """settling can be calculated using different equations (e.g. Stokes,
+    modified versions of it or others) now implemented through the rc_settling.py file
+    """
+
+    # Depending on the compartment we should use a specific water density
+
+    if "Freshwater" in particle.Pcompartment.Cname:
+        w_den_kg_m3 = density_w_21C_kg_m3
+    else:
+        w_den_kg_m3 = density_seaWater_kg_m3
+
+    # settlingMethod = "Stokes"
+
+    vSet_m_s = calculate_settling_velocity(
+        d_p=particle.diameter_um * 1e-6,
+        rho_p=particle.Pdensity_kg_m3,
+        rho_f=w_den_kg_m3,
+        mu=mu_w_21C_mPas,
+        g=g_m_s2,
+    )
+
+    if vSet_m_s > 0:
+        k_set = vSet_m_s / float(particle.Pcompartment.Cdepth_m)
+    else:
+        k_set = 0
 
     return k_set
 
@@ -189,48 +189,7 @@ def rising(particle, model):
 
     ### OLD VERSION to be changed by the below approach ?###
 
-    settlingMethod = "Stokes"
-
-    # Rising only occus in the lower water compartments wich for UTOPIA are: ["Ocean Mixed Water",
-    # "Ocean Column Water","Coast Column Water","Bulk FreshWater"]
-
-    if particle.Pcompartment.Cname in [
-        "Ocean_Mixed_Water",
-        "Ocean_Column_Water",
-        "Coast_Column_Water",
-        "Bulk_Freshwater",
-    ]:
-
-        if "Freshwater" in particle.Pcompartment.Cname:
-            w_den_kg_m3 = density_w_21C_kg_m3
-        else:
-            w_den_kg_m3 = density_seaWater_kg_m3
-
-        if settlingMethod == "Stokes":
-            vSet_m_s = (
-                2
-                / 9
-                * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
-                / mu_w_21C_kg_ms
-                * g_m_s2
-                * (float(particle.radius_m)) ** 2
-            )
-        else:
-            print("Error: cannot calculate settling other than Stokes yet")
-        # print error message settling methods other than Stokes
-        # (to be removed when other settling calculations are implemented)
-    else:
-        vSet_m_s = 0
-    # for the water and surface water compartments:
-    # settling and rising rate constants for free MP
-    if vSet_m_s > 0:
-        k_rise = 0
-
-    elif vSet_m_s < 0:
-        k_rise = -vSet_m_s / float(particle.Pcompartment.Cdepth_m)
-
-    else:
-        k_rise = 0
+    # settlingMethod = "Stokes"
 
     # Rising only occus in the lower water compartments wich for UTOPIA are: ["Ocean Mixed Water",
     # "Ocean Column Water","Coast Column Water","Bulk FreshWater"]
@@ -247,32 +206,67 @@ def rising(particle, model):
     #     else:
     #         w_den_kg_m3 = density_seaWater_kg_m3
 
-    #     vrise_m_s = calculate_settling_velocity(
-    #         d_p=particle.diameter_um * 1e-6,
-    #         rho_p=particle.Pdensity_kg_m3,
-    #         rho_f=w_den_kg_m3,
-    #         mu=mu_w_21C_mPas,
-    #         g=g_m_s2,
-    #     )
-    #     # calculate_rising_velocity(
-    #     #     d_p=particle.diameter_um * 1e-6,
-    #     #     rho_p=particle.Pdensity_kg_m3,
-    #     #     rho_f=w_den_kg_m3,
-    #     #     mu=mu_w_21C_mPas,
-    #     #     g=g_m_s2,
-    #     # )
+    #     if settlingMethod == "Stokes":
+    #         vSet_m_s = (
+    #             2
+    #             / 9
+    #             * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
+    #             / mu_w_21C_kg_ms
+    #             * g_m_s2
+    #             * (float(particle.radius_m)) ** 2
+    #         )
+    #     else:
+    #         print("Error: cannot calculate settling other than Stokes yet")
+    #     # print error message settling methods other than Stokes
+    #     # (to be removed when other settling calculations are implemented)
     # else:
-    #     vrise_m_s = 0
+    #     vSet_m_s = 0
     # # for the water and surface water compartments:
     # # settling and rising rate constants for free MP
-    # if vrise_m_s > 0:
+    # if vSet_m_s > 0:
     #     k_rise = 0
 
-    # elif vrise_m_s < 0:
-    #     k_rise = -vrise_m_s / float(particle.Pcompartment.Cdepth_m)
+    # elif vSet_m_s < 0:
+    #     k_rise = -vSet_m_s / float(particle.Pcompartment.Cdepth_m)
 
     # else:
     #     k_rise = 0
+
+    # Rising only occus in the lower water compartments wich for UTOPIA are: ["Ocean Mixed Water",
+    # "Ocean Column Water","Coast Column Water","Bulk FreshWater"]
+
+    if particle.Pcompartment.Cname in [
+        "Ocean_Mixed_Water",
+        "Ocean_Column_Water",
+        "Coast_Column_Water",
+        "Bulk_Freshwater",
+    ]:
+
+        if "Freshwater" in particle.Pcompartment.Cname:
+            w_den_kg_m3 = density_w_21C_kg_m3
+        else:
+            w_den_kg_m3 = density_seaWater_kg_m3
+
+        vrise_m_s = calculate_settling_velocity(
+            d_p=particle.diameter_um * 1e-6,
+            rho_p=particle.Pdensity_kg_m3,
+            rho_f=w_den_kg_m3,
+            mu=mu_w_21C_mPas,
+            g=g_m_s2,
+        )
+
+    else:
+        vrise_m_s = 0
+    # for the water and surface water compartments:
+    # settling and rising rate constants for free MP
+    if vrise_m_s > 0:
+        k_rise = 0
+
+    elif vrise_m_s < 0:
+        k_rise = -vrise_m_s / float(particle.Pcompartment.Cdepth_m)
+
+    else:
+        k_rise = 0
 
     return k_rise
 
@@ -280,7 +274,7 @@ def rising(particle, model):
 def heteroaggregation(particle, model):
     # process of attachment of MPs to SPM particles. The rate constant is calculated based on the collision rate constant and the attachment efficiency (alpha) and the SPM number concentration.
 
-    # Assumptions: Heteroaggegation happens to free and biofouled particles. It is hypothesized that biofilm increases the attachment efficiency of a plastic particle, reflected in two times higher values of  for biofiouled plastic particles compared to the pristine form. We assumed there is no heteroaggregation in the sediment or any soil compartment and neither in air (this is already reflected in the particle, if the particle belongs to any of these compartments there wont be heteroaggregation included as process for the particle).
+    # Assumptions: Heteroaggegation happens to free and biofouled particles. It is hypothesized that biofilm increases the attachment efficiency of a plastic particle, reflected in two times higher values of alpha_heter for biofiouled plastic particles compared to the pristine form. We assumed there is no heteroaggregation in the sediment or any soil compartment and neither in air (this is already reflected in the particle, if the particle belongs to any of these compartments there wont be heteroaggregation included as process for the particle).
 
     alpha_heter = {
         "freeMP": 0.01,
@@ -317,24 +311,21 @@ def heteroaggregation(particle, model):
     else:
         w_den_kg_m3 = density_seaWater_kg_m3
 
-    MP_vSet_m_s = (
-        2
-        / 9
-        * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
-        / mu_w_21C_kg_ms
-        * g_m_s2
-        * (float(particle.radius_m)) ** 2
+    MP_vSet_m_s = calculate_settling_velocity(
+        d_p=particle.diameter_um * 1e-6,
+        rho_p=particle.Pdensity_kg_m3,
+        rho_f=w_den_kg_m3,
+        mu=mu_w_21C_mPas,
+        g=g_m_s2,
     )
 
-    SPM_vSet_m_s = (
-        2
-        / 9
-        * (model.spm.Pdensity_kg_m3 - w_den_kg_m3)
-        / mu_w_21C_kg_ms
-        * g_m_s2
-        * (model.spm.radius_m) ** 2
+    SPM_vSet_m_s = calculate_settling_velocity(
+        d_p=model.spm.radius_m * 2,
+        rho_p=model.spm.Pdensity_kg_m3,
+        rho_f=w_den_kg_m3,
+        mu=mu_w_21C_mPas,
+        g=g_m_s2,
     )
-    # settling velocity. currently according to classical Stokes law. Need to include other modes and put calculation on its own, so that it can also be accessed for other processes
 
     k_diffSettling = (
         math.pi
@@ -399,23 +390,21 @@ def heteroaggregate_breackup(particle, model):
     else:
         w_den_kg_m3 = density_seaWater_kg_m3
 
-    MP_vSet_m_s = (
-        2
-        / 9
-        * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
-        / mu_w_21C_kg_ms
-        * g_m_s2
-        * (float(particle.radius_m)) ** 2
+    MP_vSet_m_s = calculate_settling_velocity(
+        d_p=particle.diameter_um * 1e-6,
+        rho_p=particle.Pdensity_kg_m3,
+        rho_f=w_den_kg_m3,
+        mu=mu_w_21C_mPas,
+        g=g_m_s2,
     )
-    SPM_vSet_m_s = (
-        2
-        / 9
-        * (model.spm.Pdensity_kg_m3 - w_den_kg_m3)
-        / mu_w_21C_kg_ms
-        * g_m_s2
-        * (model.spm.radius_m) ** 2
+
+    SPM_vSet_m_s = calculate_settling_velocity(
+        d_p=model.spm.radius_m * 2,
+        rho_p=model.spm.Pdensity_kg_m3,
+        rho_f=w_den_kg_m3,
+        mu=mu_w_21C_mPas,
+        g=g_m_s2,
     )
-    # settling velocity. currently according to classical Stokes law. Need to include other modes and put calculation on its own, so that it can also be accessed for other processes
 
     k_diffSettling = (
         math.pi
