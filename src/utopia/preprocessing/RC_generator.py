@@ -645,7 +645,6 @@ def burial(particle, model):
 
     return k_burial
 
-    return k_burial
 
 
 def soil_air_resuspension(particle, model):
