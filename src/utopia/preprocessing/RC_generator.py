@@ -596,13 +596,54 @@ def burial(particle, model):
     # Currenlty place holder values. To be revisited
 
     # When no depth parameter available assign burial rate taken from SimpleBox for Plastics model
-    burial_dict = {
-        "Sediment_Freshwater": 2.7e-9,
-        "Sediment_Coast": 1e-9,
-        "Sediment_Ocean": 5e-10,
-    }
+    
+    # For burial in Sediment_Freshwater, we enforced the total settling mass equal to the sum of resuspension and burial mass,
+    # which is referred to the Full Multi v3.0 parameterization
+    
+    if particle.Pcompartment.Cname == "Sediment_Freshwater":
+        
+        settlingMethod = "Stokes"
+        w_den_kg_m3 = density_w_21C_kg_m3
 
-    k_burial = burial_dict[particle.Pcompartment.Cname]
+        if settlingMethod == "Stokes":
+            vSet_m_s = (
+                2
+                / 9
+                * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
+                / mu_w_21C_kg_ms
+                * g_m_s2
+                * (float(particle.radius_m)) ** 2
+            )
+        else:
+            print("Error: cannot calculate settling other than Stokes yet")
+            # print error message settling methods other than Stokes
+            # (to be removed when other settling calculations are implemented)
+
+        # for the water and surface water compartments:
+        # settling and rising rate constants for free MP
+        if vSet_m_s > 0:
+            k_set = vSet_m_s / float(model.dict_comp["Bulk_Freshwater"].Cdepth_m)
+
+        elif vSet_m_s < 0:
+            k_set = 0
+
+        else:
+            k_set = 0
+        
+        k_burial = k_set - 4.13e-3
+        # k_resuspension for sediment freshwater compartment is 4.13e-3 /s, 
+        # calculated by the resuspension parametrization of the Full Multi v3.0
+        
+        if k_burial < 0:
+            k_burial = 0
+
+    elif particle.Pcompartment.Cname == "Sediment_Coast":
+        k_burial = 1e-9
+        
+    elif particle.Pcompartment.Cname == "Sediment_Ocean":
+        k_burial = 5e-10
+
+    return k_burial
 
     return k_burial
 
