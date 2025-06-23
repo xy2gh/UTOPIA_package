@@ -602,31 +602,25 @@ def burial(particle, model):
     
     if particle.Pcompartment.Cname == "Sediment_Freshwater":
         
-        settlingMethod = "Stokes"
         w_den_kg_m3 = density_w_21C_kg_m3
-
-        if settlingMethod == "Stokes":
-            vSet_m_s = (
-                2
-                / 9
-                * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
-                / mu_w_21C_kg_ms
-                * g_m_s2
-                * (float(particle.radius_m)) ** 2
-            )
+        
+        if "Freshwater" in particle.Pcompartment.Cname:
+            w_den_kg_m3 = density_w_21C_kg_m3
         else:
-            print("Error: cannot calculate settling other than Stokes yet")
-            # print error message settling methods other than Stokes
-            # (to be removed when other settling calculations are implemented)
+            w_den_kg_m3 = density_seaWater_kg_m3
 
-        # for the water and surface water compartments:
-        # settling and rising rate constants for free MP
+        # settlingMethod = "Stokes"
+
+        vSet_m_s = calculate_settling_velocity(
+            d_p=particle.diameter_um * 1e-6,
+            rho_p=particle.Pdensity_kg_m3,
+            rho_f=w_den_kg_m3,
+            mu=mu_w_21C_mPas,
+            g=g_m_s2,
+        )
+
         if vSet_m_s > 0:
-            k_set = vSet_m_s / float(model.dict_comp["Bulk_Freshwater"].Cdepth_m)
-
-        elif vSet_m_s < 0:
-            k_set = 0
-
+            k_set = vSet_m_s / float(particle.Pcompartment.Cdepth_m)
         else:
             k_set = 0
         
