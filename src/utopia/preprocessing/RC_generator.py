@@ -582,7 +582,7 @@ def sediment_resuspension(particle, model):
     # When no depth parameter available assign transfer sediment to water rate taken from SimpleBox for Plastics model
     # Currently placeholder values. To be revisited
     resusp_dict = {
-        "Sediment_Freshwater": 4.13e-3, # estimated and adjusted from the new parameterization of the Full Multi v3.0
+        "Sediment_Freshwater": 1e-9, 
         "Sediment_Coast": 1e-10,
         "Sediment_Ocean": 1e-11,
     }
@@ -596,15 +596,59 @@ def burial(particle, model):
     # Currenlty place holder values. To be revisited
 
     # When no depth parameter available assign burial rate taken from SimpleBox for Plastics model
-    burial_dict = {
-        "Sediment_Freshwater": 2.7e-9,
-        "Sediment_Coast": 1e-9,
-        "Sediment_Ocean": 5e-10,
+    
+    # For burial in Sediment_Freshwater, we enforced the total settling mass equal to the sum of resuspension and burial mass,
+    # which is referred to the Full Multi v3.0 parameterization
+    
+    resusp_dict = {
+        "Sediment_Freshwater": 1e-9,
+        "Sediment_Coast": 1e-10,
+        "Sediment_Ocean": 1e-11,
     }
+    
+    sediment_to_water = {
+        "Sediment_Freshwater": "Bulk_Freshwater",
+        "Sediment_Coast": "Coast_Column_Water",
+        "Sediment_Ocean": "Ocean_Column_Water"
+    }
+    
+    # define the water density based on the compartment
+    w_den_kg_m3 = density_seaWater_kg_m3
+    if "Freshwater" in particle.Pcompartment.Cname:
+        w_den_kg_m3 = density_w_21C_kg_m3
+    
+    # calculate the settling velocity using the rc_settling module
+    if particle.Pcompartment.Cname in resusp_dict:
 
-    k_burial = burial_dict[particle.Pcompartment.Cname]
+        vSet_m_s = calculate_settling_velocity(
+            d_p=particle.diameter_um * 1e-6,
+            rho_p=particle.Pdensity_kg_m3,
+            rho_f=w_den_kg_m3,
+            mu=mu_w_21C_mPas,
+            g=g_m_s2,
+        )
+        
+        water_compartment_name = sediment_to_water[particle.Pcompartment.Cname]
+        
+        if vSet_m_s > 0:
+            k_set = vSet_m_s / float(model.dict_comp[water_compartment_name].Cdepth_m)
+        else:
+            k_set = 0
+        
+        # extract the resuspension rate from the dictionary
+        k_resusp = resusp_dict[particle.Pcompartment.Cname]
+        
+        # calculate the burial rate constant
+        k_burial = k_set - k_resusp
+        
+        if k_burial < 0:
+            k_burial = 0
+
+    else:
+        k_burial = 0
 
     return k_burial
+
 
 
 def soil_air_resuspension(particle, model):
