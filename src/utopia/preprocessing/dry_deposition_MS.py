@@ -60,10 +60,6 @@ def dragCoefficient(d, rho, Rep):
     # )
     # Cd[(1000.0 < Rep) & (Rep <= 2.0e5)] = 0.44
     # Cd[Rep >= 2.0e5] = 0.10
-    
-    #!!! 250722 XZ found that NumPy boolean array indexing assignment sometimes does not work as expected
-    #!!!        so we use np.piecewise instead temporarily,
-    #!!!        which can assign values to array segments according to conditions.
 
     Rep_conditions = [
         Rep <= 1,

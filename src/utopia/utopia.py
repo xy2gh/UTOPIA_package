@@ -271,7 +271,7 @@ class utopiaModel:
 
         # Dictionary mapping particle names to sizes
         self.dict_size_coding = dict(
-            zip(self.particles_df["Name"], self.particles_df["dimensionX_um"] * 2)
+            zip(self.particles_df["Name"], self.particles_df["dimensionY_um"])
         )
 
         # Generate size codes (a-z based on number of bins)
