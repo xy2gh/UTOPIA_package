@@ -151,31 +151,39 @@ class utopiaModel:
         self.shape = self.data["shape"]
         self.MP_form = self.data["MP_form"]
         self.big_bin_diameter_um = self.config["big_bin_diameter_um"]
-             
+
         # Set dimensions based on shape
         if self.shape == "sphere":
-            self.dimensionX_um = self.config['big_bin_diameter_um']
-            self.dimensionY_um = self.config['big_bin_diameter_um']
-            self.dimensionZ_um = self.config['big_bin_diameter_um']
+            self.dimensionX_um = self.config["big_bin_diameter_um"]
+            self.dimensionY_um = self.config["big_bin_diameter_um"]
+            self.dimensionZ_um = self.config["big_bin_diameter_um"]
 
         elif self.shape in {"fiber", "fibre", "cylinder"}:
-            if all(k not in self.config for k in ['dimensionX_um', 'dimensionY_um', 'dimensionZ_um']):
-                self.dimensionX_um = self.config['big_bin_diameter_um'] / 2
-                self.dimensionY_um = self.config['big_bin_diameter_um']
-                self.dimensionZ_um = self.config['big_bin_diameter_um'] / 2
+            if all(
+                k not in self.config
+                for k in ["dimensionX_um", "dimensionY_um", "dimensionZ_um"]
+            ):
+                self.dimensionX_um = self.config["big_bin_diameter_um"] / 2
+                self.dimensionY_um = self.config["big_bin_diameter_um"]
+                self.dimensionZ_um = self.config["big_bin_diameter_um"] / 2
             else:
-                self.dimensionX_um = self.config['dimensionX_um']
-                self.dimensionY_um = self.config['dimensionY_um']
-                self.dimensionZ_um = self.config['dimensionZ_um']
+                self.dimensionX_um = self.config["dimensionX_um"]
+                self.dimensionY_um = self.config["dimensionY_um"]
+                self.dimensionZ_um = self.config["dimensionZ_um"]
 
         else:
-            if all(k in self.config for k in ['dimensionX_um', 'dimensionY_um', 'dimensionZ_um']):
-                self.dimensionX_um = self.config['dimensionX_um']
-                self.dimensionY_um = self.config['dimensionY_um']
-                self.dimensionZ_um = self.config['dimensionZ_um']
+            if all(
+                k in self.config
+                for k in ["dimensionX_um", "dimensionY_um", "dimensionZ_um"]
+            ):
+                self.dimensionX_um = self.config["dimensionX_um"]
+                self.dimensionY_um = self.config["dimensionY_um"]
+                self.dimensionZ_um = self.config["dimensionZ_um"]
             else:
-                raise ValueError(f"Dimensions not configured for shape '{self.shape}'. Please provide 'dimensionX_um', 'dimensionY_um', and 'dimensionZ_um'.")
-        
+                raise ValueError(
+                    f"Dimensions not configured for shape '{self.shape}'. Please provide 'dimensionX_um', 'dimensionY_um', and 'dimensionZ_um'."
+                )
+
         self.N_sizeBins = self.config["N_sizeBins"]
         self.FI = self.data["FI"]
         self.t_half_deg_free = self.data["t_half_deg_free"]
@@ -243,12 +251,12 @@ class utopiaModel:
             }
             return pd.DataFrame(data)
 
-        if shape == "fiber" or "fibre" or "cylinder":
-            #NOTE: # PdimensionX_m -- shortest size
-                   # PdimensionY_m -- longest size
-                   # PdimensionZ_m -- intermediate size
+        elif shape == "fiber" or "fibre" or "cylinder":
+            # NOTE: # PdimensionX_m -- shortest size
+            # PdimensionY_m -- longest size
+            # PdimensionZ_m -- intermediate size
             # temporarily defined dimensionY_um as the size distribution
-            # from 5000 um to 500 nm, the diameter is from 2500 um to 250 nm.  
+            # from 5000 um to 500 nm, the diameter is from 2500 um to 250 nm.
             # (based on datasets provided by 10.1016/j.envres.2023.115783)
             data = {
                 "Name": [f"mp{i+1}" for i in range(N_sizeBins)],
@@ -256,7 +264,7 @@ class utopiaModel:
                 "shape": [shape] * N_sizeBins,
                 "composition": [self.MP_composition] * N_sizeBins,
                 "density_kg_m3": [MPdensity_kg_m3] * N_sizeBins,
-                "dimensionX_um": [d / 2 for d in size_distribution], 
+                "dimensionX_um": [d / 2 for d in size_distribution],
                 "dimensionY_um": [d for d in size_distribution],
                 "dimensionZ_um": [d / 2 for d in size_distribution],
             }
