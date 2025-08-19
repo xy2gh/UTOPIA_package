@@ -20,7 +20,7 @@ def run_mc_analysis(base_config, base_data, n_cases=10, param_distributions=None
     param_distributions : dict
         Dictionary: param_name -> (scipy_dist_name, kwargs dict)
 
-    Returns
+    Returns (not implemented yet)
     -------
     results_df : pd.DataFrame
         DataFrame with all inputs and outputs for each case.
@@ -50,7 +50,8 @@ def run_mc_analysis(base_config, base_data, n_cases=10, param_distributions=None
         processor.generate_flows_dict()
         processor.process_results()
 
-        # Extract results by compartment andninclude the concnetration in mass and number for each compartment in the result dictionary (only used  once compartment here as example, to be considered if relevant for all or fix a different mechanism to store these results)
+        # Extract results by compartment and include the concnetration in mass and number for each compartment in the result dictionary (only used one compartment here as example, to be considered if relevant for all or fix a different mechanism to store these results)
+
         processor.extract_results_by_compartment()
         df = processor.results_by_comp
 
