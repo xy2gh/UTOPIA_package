@@ -30,7 +30,7 @@ def calculate_settling_velocity(d_p, rho_p, rho_f, mu, g=9.81):
     v_s = v_s_stokes  # Initial guess
     for _ in range(10):  # Iterate for better accuracy
         Re = (rho_f * v_s * d_p) / mu
-        Cd = (24 / Re) * (1 + 0.15 * Re**0.687)  # Empirical drag coefficient
+        Cd = (24 / Re) * (1 + 0.15 * Re**0.687)  # Empirical drag coefficient (empirical Schiller–Naumann correlation)
         v_s = math.sqrt((4 * g * d_p * (rho_p - rho_f)) / (3 * Cd * rho_f))
 
     if Re < 1000:
