@@ -256,7 +256,7 @@ class utopiaModel:
     def run(self):
         """Runs the UTOPIA model with the configured parameters."""
         # Generate model objects based on model configuration and input data
-        print("Running UTOPIA model with configured parameters...")
+        # print("Running UTOPIA model with configured parameters...")
         (
             self.system_particle_object_list,
             self.SpeciesList,
@@ -264,11 +264,11 @@ class utopiaModel:
             self.dict_comp,
             self.particles_properties_df,
         ) = generate_objects(self)
-        print("Generated model objects.")
+        # print("Generated model objects.")
 
         # Estimate rate contants for all processess for each particle in the system
         generate_rate_constants(self)
-        print("Generated rate constants for model particles.")
+        # print("Generated rate constants for model particles.")
 
         # Build matrix of interactions
         self.interactions_df = fillInteractions_fun_OOP(
@@ -276,14 +276,14 @@ class utopiaModel:
             SpeciesList=self.SpeciesList,
             dict_comp=self.dict_comp,
         )
-        print("Built matrix of interactions.")
+        # print("Built matrix of interactions.")
         # Solve system of ODEs
         if self.solver == "SteadyState":
 
             (self.R, self.PartMass_t0, self.input_flows_g_s, self.input_flows_num_s) = (
                 solver_SS(self)
             )
-            print("Solved system of ODEs for steady state.")
+            # print("Solved system of ODEs for steady state.")
         else:
             raise ValueError("Solver not implemented yet")
 
