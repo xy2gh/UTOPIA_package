@@ -75,7 +75,7 @@ processor.processed_results["size_fraction_indicators"]
 pd.DataFrame(processor.processed_results["emission_fractions_mass_data"])
 ```
 
-[Access the user step by step guide here.](https://github.com/microplastics-cluster/utopia_package/blob/main/docs/montecarlo_tutorial.ipynb) 
+[Access the user step by step guide here.](https://github.com/microplastics-cluster/utopia_package/blob/main/docs/model_tutorial.ipynb) 
 
 ## Contributing
 
