@@ -82,7 +82,10 @@ Interested in contributing? Check out the contributing guidelines. Please note t
 
 ## License
 
-`utopia` was created by Prado Domercq. It is licensed under the terms of the MIT license.
+Developed by [Prado Domercq](https://github.com/PradoDomercq).  
+Transferred to [microplastics-cluster](https://github.com/microplastics-cluster) for continued collaborative development and maintenance
+`utopia` is licensed under the terms of the MIT license.
+
 
 ## Acknowledgements
 
