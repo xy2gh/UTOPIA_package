@@ -1,9 +1,10 @@
-# utopia
+# UTOPIA
 
-Package to run the UTOPIA unit world model to estimate mass and particle distribution of microplastics in a unit world model composed of 17 compartments covering air, water, soil and sediments. Results are given for 5 size fractions ranging from hundreds of nanometers to milimiters and 4 aggregation states. Exposure indicators such as overall persistence and residence time are also given as outputs.
+Package to run the UTOPIA unit world model, a process-based mass balance model that estimates mass and particle number distributions of microplastics in a unit world model composed of 17 compartments covering air, water, soil and sediments though steady state solution of a 340 coupled first-order differential equations. Results are given for 5 size fractions ranging from hundreds of nanometers to milimiters and 4 aggregation states. Exposure indicators such as overall persistence and residence time are also given as outputs.
+
+This package version is based on the original UTOPIA model (see [original repo link]). It has been refactored for package use and includes updated process formulations and parameterizations.
 
 ## Usage
-
 
 Before installing and testing the package, it is highly recommended to set up a virtual environment, this can be made with conda as follows:
 
