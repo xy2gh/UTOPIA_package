@@ -1,8 +1,8 @@
 # UTOPIA
 
-Package to run the UTOPIA unit world model, a process-based mass balance model that estimates mass and particle number distributions of microplastics in a unit world model composed of 17 compartments covering air, water, soil and sediments though steady state solution of a 340 coupled first-order differential equations. Results are given for 5 size fractions ranging from hundreds of nanometers to milimiters and 4 aggregation states. Exposure indicators such as overall persistence and residence time are also given as outputs.
+Package to run the UTOPIA unit world model, a process-based mass balance model that estimates mass and particle number distributions of microplastics in a unit world model composed of 17 compartments covering air, water, soil and sediments though steady state solution of a 340 coupled first-order differential equations. Results are given for 5 size fractions ranging from hundreds of nanometers to milimiters and 4 aggregation states. Exposure indicators such as overall persistence and residence time are also given as outputs. Sensitivity and uncertainty analysis are possible using the [Monaco Monte Carlo framework](https://github.com/microplastics-cluster/utopia_package/blob/main/docs/montecarlo_tutorial.ipynb)
 
-This package version is based on the original UTOPIA model (see [original repo link]). It has been refactored for package use and includes updated process formulations and parameterizations.
+This package version is based on the original UTOPIA model (see [original repo link]). It has been refactored for package use and includes updated process formulations and parameterizations. The package version also includes shape functionalities where users can run the model for [spheres](https://github.com/microplastics-cluster/utopia_package/blob/main/docs/model_tutorial_sphere.ipynb) and [fibers](https://github.com/microplastics-cluster/utopia_package/blob/main/docs/model_tutorial_fiber.ipynb).
 
 ## Usage
 
@@ -75,7 +75,7 @@ processor.processed_results["size_fraction_indicators"]
 pd.DataFrame(processor.processed_results["emission_fractions_mass_data"])
 ```
 
-[Access the user step by step guide here.](https://github.com/PradoDomercq/utopia_package/blob/main/docs/model_tutorial.ipynb) 
+[Access the user step by step guide here.](https://github.com/microplastics-cluster/utopia_package/blob/main/docs/montecarlo_tutorial.ipynb) 
 
 ## Contributing
 
