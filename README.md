@@ -83,7 +83,7 @@ Interested in contributing? Check out the contributing guidelines. Please note t
 
 ## License
 
-Developed by [Prado Domercq](https://github.com/PradoDomercq).  
+Developed by [Prado Domercq](https://github.com/PradoDomercq) with contributions from [Xiaoyu Zhang](https://github.com/xy2gh)
 Transferred to [microplastics-cluster](https://github.com/microplastics-cluster) for continued collaborative development and maintenance
 `utopia` is licensed under the terms of the MIT license.
 
