@@ -9,7 +9,7 @@ This package version is based on the original UTOPIA model (see [https://github.
 Before installing and testing the package, it is highly recommended to set up a virtual environment, this can be made with conda as follows:
 
 ```bash
-$ conda create --name utopia_env python=3.9 -y
+$ conda create --name utopia_env python>=3.9 -y
 ```
 
 Activate the environment:
