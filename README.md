@@ -4,21 +4,20 @@ Package to run the [UTOPIA unit world model](https://github.com/microplastics-cl
 
 This package version is based on the original UTOPIA model (see [https://github.com/microplastics-cluster/UTOPIA_model]). It has been refactored for package use and includes updated process formulations and parameterizations. The package version also includes shape functionalities where users can run the model for [spheres](https://github.com/microplastics-cluster/utopia_package/blob/main/docs/model_tutorial_sphere.ipynb) and [fibers](https://github.com/microplastics-cluster/utopia_package/blob/main/docs/model_tutorial_fiber.ipynb).
 
-## Usage
+## Installation
 
 Before installing and testing the package, it is highly recommended to set up a virtual environment, this can be made with conda as follows:
 
+1. Create and activate a conda environment
+   
 ```bash
 $ conda create --name utopia_env python>=3.9 -y
-```
-
-Activate the environment:
-
-```bash
 $ conda activate utopia_env
 ```
 
-To install Poetry on Windows, run the following command in PowerShell:
+2. Install Poetry
+
+If you don't already have Poetry, install it on Windows by runing the following command on PowerShell:
 
 ```powershell
 (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
@@ -35,47 +34,55 @@ Then, restart your terminal and verify the installation:
 ```bash
 poetry --version
 ```
-
-Use poetry to install our package using the command poetry install at the command line from the root package directory:
+3. Install the package and dependencies
+   
+Use poetry to install our package using the command poetry install at the command line from the root package directory (where pyproject.toml is located):
 
 ```bash
 $ poetry install
 ```
+This command installs all dependencies and sets up the utopia package in development mode.
 
-Install the model with `pip` (not ready? use poetry above):
+If you prefer `pip`, you can install directly once the package is published to PyPI (not ready? use poetry above):
 
 ```bash
 $ pip install utopia
 ```
 
-Then run the `utopia` model with example data and plot the results:
+## Quick Start
 
-```python
-from utopia.utopia import utopiaModel
-from utopia.results_processing.process_results import*
-from utopia.results_processing.mass_balance_check import*
+You can run the UTOPIA model either:
 
+- From Jupyter notebooks (recommended for new users — see docs/), or
+- Using the provided example script (docs/run_utopia_example.py).
+  
+### Run the example python script
 
+After installation, you can execute the model using the provided example script:
 
-# Create the model, pass it example config and data, then run it
-config_data = utopiaModel.load_json_file("data/default_config.json")
-data_data = utopiaModel.load_json_file("data/default_data.json")
-model = utopiaModel(config=config_data, data=data_data)
-model.summarize()
-model.run()
-
-# Process results and print and plot them
-massBalance(model)
-processor = ResultsProcessor(model)
-processor.process_all()  # Process all results
-
-# Print exposure indicators
-processor.processed_results["Overall_exposure_indicators"]
-processor.processed_results["size_fraction_indicators"]
-pd.DataFrame(processor.processed_results["emission_fractions_mass_data"])
+```bash
+poetry run python docs/run_utopia_example.py
 ```
 
-[Access the user step by step guide here.](https://github.com/microplastics-cluster/utopia_package/blob/main/docs/model_tutorial.ipynb) 
+This script:
+
+- Loads example configuration and data (data/default_config.json and data/default_data.json),
+- Initializes and runs the UTOPIA model,
+- Checks the mass balance (Difference inflow-outflow),
+- Processes the results,
+- Prints exposure indicators and mass and particle number distribution figures.
+
+If successful, you should see printed summaries of model results in your terminal and output files printed such as the mentioned plots.
+
+### Run the model interactively using the step by step guide jupyter notebook
+
+The notebooks in docs/ provide guided examples that explain each step, configuration parameter, and output indicator in detail.
+
+Explore the following tutorials:
+
+-[Generic utopia step by step guide](https://github.com/microplastics-cluster/utopia_package/blob/main/docs/model_tutorial.ipynb) 
+-[Fiber specific step by step guide](https://github.com/microplastics-cluster/utopia_package/blob/main/docs/model_tutorial_fiber.ipynb)
+-[Sensitivity and Uncertainty analysis tutorial](https://github.com/microplastics-cluster/utopia_package/blob/main/docs/montecarlo_tutorial.ipynb)
 
 ## Contributing
 
