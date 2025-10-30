@@ -6,13 +6,13 @@ This package version is based on the original UTOPIA model (see [https://github.
 
 ## Installation
 
-Before installing and testing the package, it is highly recommended to set up a virtual environment, this can be made with conda as follows:
+Before installing and testing the package, it is highly recommended to set up a virtual environment, this can be made as follows:
 
 1. Create and activate a conda environment
    
 ```bash
-$ conda create --name utopia_env python>=3.9 -y
-$ conda activate utopia_env
+python -m venv .venv
+.venv\Scripts\activate
 ```
 
 2. Install Poetry
@@ -39,14 +39,20 @@ poetry --version
 Use poetry to install our package using the command poetry install at the command line from the root package directory (where pyproject.toml is located):
 
 ```bash
-$ poetry install
+poetry install
 ```
 This command installs all dependencies and sets up the utopia package in development mode.
 
 If you prefer `pip`, you can install directly once the package is published to PyPI (not ready? use poetry above):
 
 ```bash
-$ pip install utopia
+pip install utopia-pkg
+```
+4. To verify the installation:
+   
+```python
+import utopia_pkg
+print(utopia_pkg.__version__)
 ```
 
 ## Quick Start
