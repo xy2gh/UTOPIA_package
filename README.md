@@ -4,6 +4,9 @@ Package to run the [UTOPIA unit world model](https://github.com/microplastics-cl
 
 This package version is based on the original UTOPIA model (see [https://github.com/microplastics-cluster/UTOPIA_model]). It has been refactored for package use and includes updated process formulations and parameterizations. The package version also includes shape functionalities where users can run the model for [spheres](https://github.com/microplastics-cluster/utopia_package/blob/main/docs/model_tutorial_sphere.ipynb) and [fibers](https://github.com/microplastics-cluster/utopia_package/blob/main/docs/model_tutorial_fiber.ipynb).
 
+
+[See full docummentation here (currently under developement)](https://utopia-package.readthedocs.io/en/latest/)
+
 ## Installation
 
 Before installing and testing the package, it is highly recommended to set up a virtual environment, this can be made as follows:
