@@ -6,9 +6,9 @@
 
 # -- Project information -----------------------------------------------------
 
-project = u"utopia"
-copyright = u"2025, Prado Domercq"
-author = u"Prado Domercq"
+project = "utopia-pkg"
+copyright = "2025, Prado Domercq"
+author = "Prado Domercq"
 
 # -- General configuration ---------------------------------------------------
 
