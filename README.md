@@ -20,12 +20,12 @@ python -m venv .venv
 You can install directly once the package is published to PyPI (not ready? use poetry):
 
 ```bash
-pip install utopia
+pip install utopia-pkg
 ```
 3. To verify the installation:
    
 ```python
-import utopia_pkg
+import utopia
 print(utopia.__version__)
 ```
 
