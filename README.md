@@ -8,47 +8,21 @@ This package version is based on the original UTOPIA model (see [https://github.
 
 Before installing and testing the package, it is highly recommended to set up a virtual environment, this can be made as follows:
 
-1. Create and activate a conda environment
+1. Create and activate a python environment
    
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
 ```
 
-2. Install Poetry
+2. Install the package
 
-If you don't already have Poetry, install it on Windows by runing the following command on PowerShell:
-
-```powershell
-(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
-```
-
-After installation, add the Poetry into your PATH:
-
-```bash
-[Environment]::SetEnvironmentVariable("Path", "$env:Path;%USERPROFILE%\.poetry\bin", "User")
-```
-
-Then, restart your terminal and verify the installation:
-
-```bash
-poetry --version
-```
-3. Install the package and dependencies
-   
-Use poetry to install our package using the command poetry install at the command line from the root package directory (where pyproject.toml is located):
-
-```bash
-poetry install
-```
-This command installs all dependencies and sets up the utopia package in development mode.
-
-If you prefer `pip`, you can install directly once the package is published to PyPI (not ready? use poetry above):
+You can install directly once the package is published to PyPI (not ready? use poetry):
 
 ```bash
 pip install utopia-pkg
 ```
-4. To verify the installation:
+3. To verify the installation:
    
 ```python
 import utopia_pkg
