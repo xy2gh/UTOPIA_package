@@ -1,7 +1,7 @@
 '''
 Author: Xiaoyu Zhang (xiaoyu.zhang@aces.su.se)
 Date: 2026-02-11 15:26:29
-LastEditTime: 2026-02-13 12:10:41
+LastEditTime: 2026-02-13 12:14:53
 Description: this script is for testing the settling velocity from air,
              and comparing the settling velocity, Reynolds number and drag coefficient with measured data.
              (test data extracted from the paper: https://pubs.acs.org/doi/10.1021/acsestair.5c00250)
@@ -19,10 +19,8 @@ warnings.filterwarnings('ignore')
 
 # ---- Constants dependants of Temperature, Pressure, altitud. Have to be adapted to specific regions ------------
 muAir = 1.82e-5 #1.789e-5  # [kg.m−1.s−1], dynamic viscosity of the air (Heigth, Temp dependent)
-#!!! 260211 XZ questioning: kg m-1 s-1?
-
 rhoAir = 1.205 #1.1438  # [kg.m-3], density of air (Heigth, Temp dependent)
-#!!! 260211 for testing: revied muAir and rhoAir to the values at 20°C and ori. vaules are commented behind
+#!!! 260211 XZ testing: revised muAir and rhoAir to the values at 20°C and ori. vaules are commented behind
 
 g0 = 9.81  # [m.s-2] gravitational acceleration on earth (Heigth dependent)
 
@@ -195,7 +193,7 @@ def load_and_prepare(csv_path):
     df['diameter_m'] = df['diameter_mm'] / 1000.0
     df['density_kgm3'] = pd.to_numeric(df[col_map['density']], errors='coerce') * 1000.0
     df['vs_measured'] = pd.to_numeric(df[col_map['vs_meas']], errors='coerce')
-    df['vs_sd'] = pd.to_numeric(df[col_map['vs_sd']], errors='coerce')   # 标准差
+    df['vs_sd'] = pd.to_numeric(df[col_map['vs_sd']], errors='coerce')
     df['Re_measured'] = pd.to_numeric(df[col_map['re_meas']], errors='coerce')
     
     # delete rows with missing critical data
